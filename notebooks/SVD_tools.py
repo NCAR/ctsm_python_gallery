@@ -10,7 +10,14 @@ from scipy import stats
 def decompose(ts_anomaly):
     ## assumes 2d anomalies, month*year
     ##Here we deconstruct the observations into U and V (matrices) and s (list)
-    U, s, V = np.linalg.svd(ts_anomaly, full_matrices=False)
+    Nyears=ts_anomaly.shape[1]
+    Nmonths=ts_anomaly.shape[0]
+    print(Nmonths, Nyears)
+
+    if Nyears > Nmonths:
+        U, s, V = np.linalg.svd(ts_anomaly, full_matrices=True)
+    else:
+        U, s, V = np.linalg.svd(ts_anomaly, full_matrices=False)
 
     ##Convert s from list to a diagonal matrix
     S = np.diag(s)
@@ -19,9 +26,6 @@ def decompose(ts_anomaly):
     ##sv_vectors will represent the vector shapes
     ##sv_weights will represent the annual weights for each vector
     ##(2 singular vectors of interest, 12 months per year, n total years)
-    Nyears=ts_anomaly.shape[1]
-    Nmonths=ts_anomaly.shape[0]
-    print(Nmonths, Nyears)
     sv_vectors = np.zeros((Nyears,Nmonths),dtype='float')
     sv_weights = np.zeros((Nyears,Nyears),dtype='float')
 
@@ -35,12 +39,10 @@ def decompose(ts_anomaly):
     for iyear in range(Nyears):
         if Nyears > Nmonths:
             sv_vectors[iyear,:]=np.dot(U,Sigma)[:,iyear]
-            # Not sure how to handle the weights, because if Years>month, dim=(month,year)
-            sv_weights[:Nmonths, iyear] = V[:,iyear]  
-
+            sv_weights[iyear,:]=V[iyear,:]  
+            
         else:
             sv_vectors[iyear,:]=np.dot(U,S)[:,iyear]
-            ##Here define the annual weight vectors directly from V.
             sv_weights[iyear,:]=V[iyear,:]      
 
     return(sv_vectors, sv_weights)
