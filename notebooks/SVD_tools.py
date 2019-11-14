@@ -12,7 +12,7 @@ def decompose(ts_anomaly):
     ##Here we deconstruct the observations into U and V (matrices) and s (list)
     Nyears=ts_anomaly.shape[1]
     Nmonths=ts_anomaly.shape[0]
-    print(Nmonths, Nyears)
+    # print(Nmonths, Nyears)
 
     if Nyears > Nmonths:
         U, s, V = np.linalg.svd(ts_anomaly, full_matrices=True)
@@ -59,7 +59,7 @@ def calc_redistribution(sv_vectors, sv_weights, ts_anomaly):
     for i in range(Nvec):
         sv_theta[i] = np.abs(np.nansum(sv_vectors[i,:]))/np.nansum(np.abs(sv_vectors[i,:]))
     
-    print(sv_theta)
+    # print(sv_theta)
 
     ##Calculate percentage variability described by sv vectors
     #First arrange timeseries (Obs and SV contributions)
