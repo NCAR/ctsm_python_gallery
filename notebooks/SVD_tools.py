@@ -2,14 +2,15 @@
 ## functions used in SVD used here 
 
 import numpy as np
-import matplotlib.pyplot as plt
-import netCDF4 as nc
+
 from scipy import stats
 
 
 def decompose(ts_anomaly):
     ## assumes 2d anomalies, month*year
-    ##Here we deconstruct the observations into U and V (matrices) and s (list)
+    ## Deconstruct the observations into U and V (matrices) and s (list)
+    ## Outputs are vectors (dim = Nyear*Nmonths) & weights (dim = Nyear*Nyear)
+
     Nyears=ts_anomaly.shape[1]
     Nmonths=ts_anomaly.shape[0]
     # print(Nmonths, Nyears)
@@ -22,10 +23,10 @@ def decompose(ts_anomaly):
     ##Convert s from list to a diagonal matrix
     S = np.diag(s)
 
-    ##Initialize matrices to look at the first 2 (of 9) singular vectors.
-    ##sv_vectors will represent the vector shapes
-    ##sv_weights will represent the annual weights for each vector
-    ##(2 singular vectors of interest, 12 months per year, n total years)
+    # Initialize matrices to look at the first 2 (of nyears) singular vectors.
+    # sv_vectors will represent the vector shapes
+    # sv_weights will represent the annual weights for each vector
+    # (2 singular vectors of interest, 12 months per year, n total years)
     sv_vectors = np.zeros((Nyears,Nmonths),dtype='float')
     sv_weights = np.zeros((Nyears,Nyears),dtype='float')
 
@@ -46,7 +47,6 @@ def decompose(ts_anomaly):
             sv_weights[iyear,:]=V[iyear,:]      
 
     return(sv_vectors, sv_weights)
-
 
 def calc_redistribution(sv_vectors, sv_weights, ts_anomaly):
     ##Calculate redistribution values for SV 1 and 2
