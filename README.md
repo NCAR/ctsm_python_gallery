@@ -7,12 +7,12 @@ This repository includes a series of Jupyter Notebooks that highlight how Python
 
 | Notebook      | Author        | Description  |
 | ------------- |---------------| -------------|
-| AnomalyDetrend.ipynb | Will Wieder | TODO |
+| AnomalyDetrend.ipynb | Will Wieder | calculates gridcell anomalies from climatology and then detrends data |
 | compare_esm_ssp_opt.ipynb | Katie Dagon | TODO |
 | LandUseChange_maps.ipynb | Dave Lawrennce | TODO |
-| MonthlySVD.ipynb | Will Wieder | TODO |
-| ScatterExample.ipynb | Danica Lombardozzi | TODO |
-| SimpleExample.ipynb | Will Wieder | TODO |
+| MonthlySVD.ipynb | Will Wieder | complicated analysis looking at gridcell level singular value decomposition of GPP |
+| ScatterExample.ipynb | Daniel Kennedy | TODO |
+| SimpleExample.ipynb | Will Wieder | simple example to read in history file, calculate annual values & plot |
 | WeightedMeans.ipynb | Katie Dagon | TODO |
 
 # ctsm_py
