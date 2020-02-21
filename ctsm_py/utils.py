@@ -149,31 +149,3 @@ def cyclic_dataarray(da, coord='lon'):
             new_da.coords[c].attrs[att] = da.coords[c].attrs[att]
 
     return new_da
-
-# as above, but for a dataset
-# doesn't work because dims are locked in a dataset
-'''
-def cyclic_dataset(ds, coord='lon'):
-    assert isinstance(ds, xr.Dataset)
-
-    lon_idx = ds.dims.index(coord)
-    cyclic_data, cyclic_coord = add_cyclic_point(ds.values,
-                                                 coord=ds.coords[coord],
-                                                 axis=lon_idx)
-
-    # Copy and add the cyclic coordinate and data
-    new_coords = dict(ds.coords)
-    new_coords[coord] = cyclic_coord
-    new_values = cyclic_data
-
-    new_ds = xr.DataSet(new_values, dims=ds.dims, coords=new_coords)
-
-    # Copy the attributes for the re-constructed data and coords
-    for att, val in ds.attrs.items():
-        new_ds.attrs[att] = val
-    for c in ds.coords:
-        for att in ds.coords[c].attrs:
-            new_ds.coords[c].attrs[att] = ds.coords[c].attrs[att]
-
-    return new_ds
-'''

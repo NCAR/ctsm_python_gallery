@@ -1,14 +1,30 @@
-CTSM_PY
-=======
+CTSM Python Gallery
+===================
 
-A place to put sample workflows and tools that use ctsm model output
+This repository includes a series of Jupyter Notebooks that highlight how Python can be used to analyze CTSM and CMIP-like model output.
+
+## Notebooks
+
+| Notebook      | Author        | Description  |
+| ------------- |---------------| -------------|
+| AnomalyDetrend.ipynb | Will Wieder | TODO |
+| compare_esm_ssp_opt.ipynb | Katie Dagon | TODO |
+| LandUseChange_maps.ipynb | Dave Lawrennce | TODO |
+| MonthlySVD.ipynb | Will Wieder | TODO |
+| ScatterExample.ipynb | Danica Lombardozzi | TODO |
+| SimpleExample.ipynb | Will Wieder | TODO |
+| WeightedMeans.ipynb | Katie Dagon | TODO |
+
+# ctsm_py
+
+Some of the notebooks in this gallery make use of some simple utilities stored in the `ctsm_py` module. Details on how to install and import `ctsm_py` are below:
 
 ## Installing
 
 First clone this repository:
 
 ```
-git clone https://github.com/NCAR/ctsm_py.git
+git clone https://github.com/NCAR/ctsm_python_gallery.git
 ```
 
 Then intall the utilities:
