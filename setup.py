@@ -2,8 +2,8 @@
 
 """The setup script."""
 
-import sys
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
+
 # import versioneer
 
 
@@ -13,9 +13,9 @@ from setuptools import setup, find_packages
 with open("README.md") as f:
     LONG_DESCRIPTION = f.read()
 
-PYTHON_REQUIRES = '>=3.6'
+PYTHON_REQUIRES = ">=3.6"
 
-description = ("Utilities for working with ctsm data")
+description = "Utilities for working with ctsm data"
 setup(
     name="ctsm_py",
     description=description,
@@ -24,10 +24,10 @@ setup(
     maintainer="Joe Hamman",
     maintainer_email="jhamman@ucar.edu",
     url="https://github.com/ncar/ctsm_py",
-    py_modules=['ctsm_py'],
+    py_modules=["ctsm_py"],
     packages=find_packages(),
     python_requires=PYTHON_REQUIRES,
     license="Apache",
     keywords="ctsm_py",
-    version='0.0.1',
+    version="0.0.1",
 )
