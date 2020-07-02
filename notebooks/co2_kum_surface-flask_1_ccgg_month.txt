@@ -1,0 +1,578 @@
+# number_of_header_lines: 70
+# comment:  
+# comment:  ************ USE OF ESRL GMD DATA ****************
+# comment:  
+# comment: These data are made freely available to the public and the
+# comment: scientific community in the belief that their wide dissemination
+# comment: will lead to greater understanding and new scientific insights.
+# comment: The availability of these data does not constitute publication
+# comment: of the data.  NOAA relies on the ethics and integrity of the user to
+# comment: ensure that ESRL receives fair credit for their work.  If the data 
+# comment: are obtained for potential use in a publication or presentation, 
+# comment: ESRL should be informed at the outset of the nature of this work.  
+# comment: If the ESRL data are essential to the work, or if an important 
+# comment: result or conclusion depends on the ESRL data, co-authorship
+# comment: may be appropriate.  This should be discussed at an early stage in
+# comment: the work.  Manuscripts using the ESRL data should be sent to ESRL
+# comment: for review before they are submitted for publication so we can
+# comment: ensure that the quality and limitations of the data are accurately
+# comment: represented.
+# comment:  
+# comment: Every effort is made to produce the most accurate and precise
+# comment: measurements possible.  However, we reserve the right to make
+# comment: corrections to the data based on recalibration of standard gases
+# comment: or for other reasons deemed scientifically justified.
+# comment: 
+# comment: We are not responsible for results and conclusions based on use
+# comment: of these data without regard to this warning.
+# comment: 
+# contact_parameter: CO2 CCGG (Individual Flasks)
+# contact_name: Ed Dlugokencky
+# contact_telephone: (303) 497-6228
+# contact_email: Ed.Dlugokencky@noaa.gov
+# comment: 
+# comment:  ************ COLLABORATORS ***************
+# comment: 
+# comment: NOAA thanks the following collaborators without
+# comment: whom these measurements would not be possible.
+# comment: 
+# collaborator_name: NOAA Earth System Research Laboratory, Global
+# collaborator_name: Monitoring Division [NOAA ESRL GMD]
+# collaborator_url: http://www.esrl.noaa.gov/gmd
+# comment: 
+# comment:  ************ RECIPROCITY AGREEMENT ***************
+# comment: 
+# comment: Use of these data implies an agreement to reciprocate.
+# comment: Laboratories making similar measurements agree to make their
+# comment: own data available to the general public and to the scientific
+# comment: community in an equally complete and easily accessible form.
+# comment: Modelers are encouraged to make available to the community,
+# comment: upon request, their own tools used in the interpretation
+# comment: of the ESRL data, namely well documented model code, transport
+# comment: fields, and additional information necessary for other
+# comment: scientists to repeat the work and to run modified versions.
+# comment: Model availability includes collaborative support for new
+# comment: users of the models.
+# comment:
+# comment:  ************ DATA DESCRIPTION ***************
+# comment:
+# description_site-code: kum
+# description_project-abbr: ccg_surface
+# description_strategy-abbr: flask
+# description_analysis-constraints: flag:..%
+# description_creation-time: 2019-07-16 13:39:41
+# comment:
+# comment:  ************ DATA DOCUMENTATION ***************
+# comment:
+# comment: Please refer to the species-specific README file in the
+# comment: appropriate directory folder at ftp://aftp.cmdl.noaa.gov/data/trace_gases/.
+# comment:
+# data_fields: site year month value
+KUM 1976  3   334.25
+KUM 1976  4   335.69
+KUM 1976  5   336.39
+KUM 1976  6   334.63
+KUM 1976  7   331.39
+KUM 1976  8   328.89
+KUM 1976  9   328.54
+KUM 1976 10   330.04
+KUM 1976 11   331.87
+KUM 1976 12   332.55
+KUM 1977  1   333.67
+KUM 1977  2   334.43
+KUM 1977  3   334.89
+KUM 1977  4   336.78
+KUM 1977  5   337.86
+KUM 1977  6   336.51
+KUM 1977  7   334.77
+KUM 1977  8   332.82
+KUM 1977  9   330.86
+KUM 1977 10   330.97
+KUM 1977 11   332.87
+KUM 1977 12   334.35
+KUM 1978  1   335.57
+KUM 1978  2   336.67
+KUM 1978  3   337.58
+KUM 1978  4   338.31
+KUM 1978  5   339.38
+KUM 1978  6   339.02
+KUM 1978  7   335.94
+KUM 1978  8   332.73
+KUM 1978  9   331.34
+KUM 1978 10   332.53
+KUM 1978 11   334.41
+KUM 1978 12   335.54
+KUM 1979  1   337.02
+KUM 1979  2   338.59
+KUM 1979  3   339.33
+KUM 1979  4   339.85
+KUM 1979  5   341.15
+KUM 1979  6   340.14
+KUM 1979  7   336.62
+KUM 1979  8   334.31
+KUM 1979  9   333.24
+KUM 1979 10   334.31
+KUM 1979 11   336.83
+KUM 1979 12   337.27
+KUM 1980  7   340.15
+KUM 1980  8   337.25
+KUM 1980  9   335.65
+KUM 1980 10   336.74
+KUM 1980 11   338.19
+KUM 1980 12   339.29
+KUM 1981  1   341.00
+KUM 1981  2   341.92
+KUM 1981  3   342.44
+KUM 1981  4   343.59
+KUM 1981  5   344.04
+KUM 1981  6   342.46
+KUM 1981  7   339.52
+KUM 1981  8   337.45
+KUM 1981  9   336.70
+KUM 1981 10   337.79
+KUM 1981 11   339.24
+KUM 1981 12   340.25
+KUM 1982  1   341.63
+KUM 1982  2   342.89
+KUM 1982  3   343.64
+KUM 1982  4   344.36
+KUM 1982  5   344.83
+KUM 1982  6   343.51
+KUM 1982  7   340.84
+KUM 1982  8   338.27
+KUM 1982  9   336.73
+KUM 1982 10   337.58
+KUM 1982 11   339.83
+KUM 1982 12   341.21
+KUM 1983  1   342.06
+KUM 1983  2   343.53
+KUM 1983  3   344.88
+KUM 1983  4   345.74
+KUM 1983  5   346.23
+KUM 1983  6   345.19
+KUM 1983  7   343.06
+KUM 1983  8   339.57
+KUM 1983  9   338.36
+KUM 1983 10   340.09
+KUM 1983 11   341.79
+KUM 1983 12   343.05
+KUM 1984  1   344.37
+KUM 1984  2   345.54
+KUM 1984  3   346.40
+KUM 1984  4   347.58
+KUM 1984  5   348.11
+KUM 1984  6   346.95
+KUM 1984  7   343.70
+KUM 1984  8   340.51
+KUM 1984  9   340.26
+KUM 1984 10   341.63
+KUM 1984 11   343.10
+KUM 1984 12   344.61
+KUM 1985  1   345.82
+KUM 1985  2   346.56
+KUM 1985  3   347.36
+KUM 1985  4   348.57
+KUM 1985  5   349.84
+KUM 1985  6   348.94
+KUM 1985  7   345.82
+KUM 1985  8   342.67
+KUM 1985  9   341.35
+KUM 1985 10   342.65
+KUM 1985 11   344.71
+KUM 1985 12   346.35
+KUM 1986  1   347.36
+KUM 1986  2   347.74
+KUM 1986  3   348.48
+KUM 1986  4   349.56
+KUM 1986  5   350.20
+KUM 1986  6   349.53
+KUM 1986  7   347.01
+KUM 1986  8   344.72
+KUM 1986  9   343.43
+KUM 1986 10   343.93
+KUM 1986 11   345.90
+KUM 1986 12   347.70
+KUM 1987  1   349.14
+KUM 1987  2   349.57
+KUM 1987  3   350.12
+KUM 1987  4   351.46
+KUM 1987  5   352.49
+KUM 1987  6   351.34
+KUM 1987  7   348.21
+KUM 1987  8   346.20
+KUM 1987  9   345.15
+KUM 1987 10   346.04
+KUM 1987 11   347.99
+KUM 1987 12   349.61
+KUM 1988  1   350.88
+KUM 1988  2   351.99
+KUM 1988  3   352.98
+KUM 1988  4   354.30
+KUM 1988  5   355.03
+KUM 1988  6   353.74
+KUM 1988  7   351.66
+KUM 1988  8   348.60
+KUM 1988  9   347.64
+KUM 1988 10   349.37
+KUM 1988 11   350.80
+KUM 1988 12   352.12
+KUM 1989  1   353.05
+KUM 1989  2   353.42
+KUM 1989  3   354.63
+KUM 1989  4   356.36
+KUM 1989  5   356.68
+KUM 1989  6   355.31
+KUM 1989  7   352.96
+KUM 1989  8   350.20
+KUM 1989  9   349.40
+KUM 1989 10   350.36
+KUM 1989 11   352.46
+KUM 1989 12   353.99
+KUM 1990  1   354.89
+KUM 1990  2   356.05
+KUM 1990  3   356.62
+KUM 1990  4   357.23
+KUM 1990  5   357.56
+KUM 1990  6   355.88
+KUM 1990  7   353.69
+KUM 1990  8   351.88
+KUM 1990  9   350.57
+KUM 1990 10   351.29
+KUM 1990 11   353.45
+KUM 1990 12   354.96
+KUM 1991  1   355.95
+KUM 1991  2   356.97
+KUM 1991  3   357.95
+KUM 1991  4   359.45
+KUM 1991  5   360.02
+KUM 1991  6   358.37
+KUM 1991  7   355.68
+KUM 1991  8   352.78
+KUM 1991  9   351.61
+KUM 1991 10   352.91
+KUM 1991 11   354.55
+KUM 1991 12   355.98
+KUM 1992  1   357.70
+KUM 1992  2   358.51
+KUM 1992  3   358.90
+KUM 1992  4   359.71
+KUM 1992  5   360.13
+KUM 1992  6   358.35
+KUM 1992  7   355.67
+KUM 1992  8   353.63
+KUM 1992  9   352.09
+KUM 1992 10   353.02
+KUM 1992 11   354.88
+KUM 1992 12   356.46
+KUM 1993  1   357.85
+KUM 1993  2   359.00
+KUM 1993  3   359.30
+KUM 1993  4   360.20
+KUM 1993  5   361.17
+KUM 1993  6   359.91
+KUM 1993  7   357.21
+KUM 1993  8   353.66
+KUM 1993  9   352.31
+KUM 1993 10   353.81
+KUM 1993 11   355.89
+KUM 1993 12   358.29
+KUM 1994  1   359.91
+KUM 1994  2   361.23
+KUM 1994  3   361.76
+KUM 1994  4   361.44
+KUM 1994  5   361.80
+KUM 1994  6   360.54
+KUM 1994  7   358.36
+KUM 1994  8   356.08
+KUM 1994  9   354.69
+KUM 1994 10   355.86
+KUM 1994 11   358.30
+KUM 1994 12   360.09
+KUM 1995  1   361.21
+KUM 1995  2   362.27
+KUM 1995  3   363.35
+KUM 1995  4   364.30
+KUM 1995  5   364.16
+KUM 1995  6   362.51
+KUM 1995  7   360.27
+KUM 1995  8   357.60
+KUM 1995  9   356.84
+KUM 1995 10   358.79
+KUM 1995 11   360.26
+KUM 1995 12   361.08
+KUM 1996  1   362.51
+KUM 1996  2   363.93
+KUM 1996  3   364.58
+KUM 1996  4   364.90
+KUM 1996  5   365.80
+KUM 1996  6   365.49
+KUM 1996  7   362.80
+KUM 1996  8   360.07
+KUM 1996  9   358.61
+KUM 1996 10   358.98
+KUM 1996 11   361.41
+KUM 1996 12   364.28
+KUM 1997  1   364.86
+KUM 1997  2   364.67
+KUM 1997  3   365.29
+KUM 1997  4   366.72
+KUM 1997  5   367.73
+KUM 1997  6   366.44
+KUM 1997  7   363.89
+KUM 1997  8   361.04
+KUM 1997  9   359.23
+KUM 1997 10   360.38
+KUM 1997 11   363.43
+KUM 1997 12   366.30
+KUM 1998  1   367.05
+KUM 1998  2   368.23
+KUM 1998  3   369.65
+KUM 1998  4   369.70
+KUM 1998  5   369.45
+KUM 1998  6   368.13
+KUM 1998  7   366.58
+KUM 1998  8   364.37
+KUM 1998  9   362.11
+KUM 1998 10   364.16
+KUM 1998 11   366.44
+KUM 1998 12   367.81
+KUM 1999  1   369.52
+KUM 1999  2   370.04
+KUM 1999  3   370.77
+KUM 1999  4   371.87
+KUM 1999  5   372.13
+KUM 1999  6   370.43
+KUM 1999  7   366.99
+KUM 1999  8   364.04
+KUM 1999  9   363.44
+KUM 1999 10   365.12
+KUM 1999 11   367.30
+KUM 1999 12   368.81
+KUM 2000  1   369.68
+KUM 2000  2   370.62
+KUM 2000  3   372.15
+KUM 2000  4   373.08
+KUM 2000  5   373.40
+KUM 2000  6   372.51
+KUM 2000  7   369.52
+KUM 2000  8   366.53
+KUM 2000  9   366.10
+KUM 2000 10   367.24
+KUM 2000 11   368.79
+KUM 2000 12   370.10
+KUM 2001  1   371.82
+KUM 2001  2   372.52
+KUM 2001  3   372.54
+KUM 2001  4   373.89
+KUM 2001  5   374.96
+KUM 2001  6   373.54
+KUM 2001  7   370.75
+KUM 2001  8   368.44
+KUM 2001  9   367.48
+KUM 2001 10   368.58
+KUM 2001 11   370.87
+KUM 2001 12   372.11
+KUM 2002  1   373.27
+KUM 2002  2   374.58
+KUM 2002  3   375.56
+KUM 2002  4   376.49
+KUM 2002  5   376.13
+KUM 2002  6   374.47
+KUM 2002  7   372.53
+KUM 2002  8   370.05
+KUM 2002  9   368.98
+KUM 2002 10   370.86
+KUM 2002 11   373.12
+KUM 2002 12   375.27
+KUM 2003  1   377.20
+KUM 2003  2   377.73
+KUM 2003  3   377.63
+KUM 2003  4   378.51
+KUM 2003  5   379.81
+KUM 2003  6   379.06
+KUM 2003  7   375.79
+KUM 2003  8   372.45
+KUM 2003  9   372.57
+KUM 2003 10   374.48
+KUM 2003 11   375.53
+KUM 2003 12   376.54
+KUM 2004  1   378.10
+KUM 2004  2   379.23
+KUM 2004  3   379.79
+KUM 2004  4   380.78
+KUM 2004  5   381.26
+KUM 2004  6   380.25
+KUM 2004  7   378.68
+KUM 2004  8   377.03
+KUM 2004  9   375.16
+KUM 2004 10   375.36
+KUM 2004 11   377.37
+KUM 2004 12   377.75
+KUM 2005  1   378.38
+KUM 2005  2   381.29
+KUM 2005  3   383.21
+KUM 2005  4   383.50
+KUM 2005  5   383.89
+KUM 2005  6   382.13
+KUM 2005  7   378.98
+KUM 2005  8   376.43
+KUM 2005  9   375.87
+KUM 2005 10   377.01
+KUM 2005 11   378.71
+KUM 2005 12   380.53
+KUM 2006  1   382.48
+KUM 2006  2   383.51
+KUM 2006  3   384.09
+KUM 2006  4   385.42
+KUM 2006  5   386.41
+KUM 2006  6   385.27
+KUM 2006  7   382.56
+KUM 2006  8   378.85
+KUM 2006  9   377.34
+KUM 2006 10   379.12
+KUM 2006 11   381.60
+KUM 2006 12   382.79
+KUM 2007  1   384.19
+KUM 2007  2   385.52
+KUM 2007  3   385.61
+KUM 2007  4   386.47
+KUM 2007  5   387.27
+KUM 2007  6   385.99
+KUM 2007  7   383.36
+KUM 2007  8   381.33
+KUM 2007  9   381.10
+KUM 2007 10   381.78
+KUM 2007 11   382.72
+KUM 2007 12   384.14
+KUM 2008  1   386.17
+KUM 2008  2   387.54
+KUM 2008  3   388.08
+KUM 2008  4   389.69
+KUM 2008  5   390.80
+KUM 2008  6   388.97
+KUM 2008  7   385.97
+KUM 2008  8   383.90
+KUM 2008  9   382.73
+KUM 2008 10   383.11
+KUM 2008 11   384.57
+KUM 2008 12   386.40
+KUM 2009  1   388.10
+KUM 2009  2   389.09
+KUM 2009  3   389.32
+KUM 2009  4   390.19
+KUM 2009  5   391.29
+KUM 2009  6   389.69
+KUM 2009  7   386.60
+KUM 2009  8   384.74
+KUM 2009  9   383.46
+KUM 2009 10   384.42
+KUM 2009 11   386.68
+KUM 2009 12   388.14
+KUM 2010  1   389.54
+KUM 2010  2   391.61
+KUM 2010  3   392.42
+KUM 2010  4   393.16
+KUM 2010  5   394.36
+KUM 2010  6   392.69
+KUM 2010  7   388.82
+KUM 2010  8   386.20
+KUM 2010  9   386.27
+KUM 2010 10   388.51
+KUM 2010 11   390.37
+KUM 2010 12   390.94
+KUM 2011  1   392.59
+KUM 2011  2   393.52
+KUM 2011  3   393.75
+KUM 2011  4   395.47
+KUM 2011  5   396.18
+KUM 2011  6   393.90
+KUM 2011  7   390.77
+KUM 2011  8   388.81
+KUM 2011  9   387.73
+KUM 2011 10   388.73
+KUM 2011 11   391.89
+KUM 2011 12   393.47
+KUM 2012  1   394.02
+KUM 2012  2   395.49
+KUM 2012  3   396.57
+KUM 2012  4   397.53
+KUM 2012  5   398.13
+KUM 2012  6   396.14
+KUM 2012  7   393.10
+KUM 2012  8   391.40
+KUM 2012  9   390.87
+KUM 2012 10   392.17
+KUM 2012 11   393.87
+KUM 2012 12   394.95
+KUM 2013  1   396.50
+KUM 2013  2   398.29
+KUM 2013  3   399.71
+KUM 2013  4   399.79
+KUM 2013  5   400.47
+KUM 2013  6   399.82
+KUM 2013  7   396.14
+KUM 2013  8   393.55
+KUM 2013  9   392.47
+KUM 2013 10   394.10
+KUM 2013 11   396.98
+KUM 2013 12   397.72
+KUM 2014  1   398.64
+KUM 2014  2   399.51
+KUM 2014  3   400.19
+KUM 2014  4   401.73
+KUM 2014  5   402.51
+KUM 2014  6   401.27
+KUM 2014  7   398.05
+KUM 2014  8   395.29
+KUM 2014  9   395.10
+KUM 2014 10   396.50
+KUM 2014 11   398.51
+KUM 2014 12   400.19
+KUM 2015  1   401.69
+KUM 2015  2   402.80
+KUM 2015  3   403.23
+KUM 2015  4   403.93
+KUM 2015  5   404.22
+KUM 2015  6   402.84
+KUM 2015  7   399.72
+KUM 2015  8   397.30
+KUM 2015  9   397.06
+KUM 2015 10   398.67
+KUM 2015 11   400.48
+KUM 2015 12   402.50
+KUM 2016  1   405.66
+KUM 2016  2   407.04
+KUM 2016  3   406.66
+KUM 2016  4   407.55
+KUM 2016  5   408.28
+KUM 2016  6   406.40
+KUM 2016  7   403.27
+KUM 2016  8   400.57
+KUM 2016  9   399.82
+KUM 2016 10   401.50
+KUM 2016 11   404.02
+KUM 2016 12   405.71
+KUM 2017  1   407.68
+KUM 2017  2   408.77
+KUM 2017  3   408.76
+KUM 2017  4   409.24
+KUM 2017  5   409.95
+KUM 2017  6   409.31
+KUM 2017  7   406.49
+KUM 2017  8   402.68
+KUM 2017  9   401.83
+KUM 2017 10   403.77
+KUM 2017 11   406.55
+KUM 2017 12   408.37
+KUM 2018  1   408.96
+KUM 2018  2   409.74
+KUM 2018  3   410.60
+KUM 2018  4   411.98
+KUM 2018  5   412.99
+KUM 2018  6   410.98
+KUM 2018  7   407.79
+KUM 2018  8   405.42
+KUM 2018  9   404.39
+KUM 2018 10   405.83
+KUM 2018 11   408.37
+KUM 2018 12   409.96

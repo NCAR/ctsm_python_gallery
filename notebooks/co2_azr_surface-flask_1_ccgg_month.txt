@@ -1,0 +1,440 @@
+# number_of_header_lines: 69
+# comment:  
+# comment:  ************ USE OF ESRL GMD DATA ****************
+# comment:  
+# comment: These data are made freely available to the public and the
+# comment: scientific community in the belief that their wide dissemination
+# comment: will lead to greater understanding and new scientific insights.
+# comment: The availability of these data does not constitute publication
+# comment: of the data.  NOAA relies on the ethics and integrity of the user to
+# comment: ensure that ESRL receives fair credit for their work.  If the data 
+# comment: are obtained for potential use in a publication or presentation, 
+# comment: ESRL should be informed at the outset of the nature of this work.  
+# comment: If the ESRL data are essential to the work, or if an important 
+# comment: result or conclusion depends on the ESRL data, co-authorship
+# comment: may be appropriate.  This should be discussed at an early stage in
+# comment: the work.  Manuscripts using the ESRL data should be sent to ESRL
+# comment: for review before they are submitted for publication so we can
+# comment: ensure that the quality and limitations of the data are accurately
+# comment: represented.
+# comment:  
+# comment: Every effort is made to produce the most accurate and precise
+# comment: measurements possible.  However, we reserve the right to make
+# comment: corrections to the data based on recalibration of standard gases
+# comment: or for other reasons deemed scientifically justified.
+# comment: 
+# comment: We are not responsible for results and conclusions based on use
+# comment: of these data without regard to this warning.
+# comment: 
+# contact_parameter: CO2 CCGG (Individual Flasks)
+# contact_name: Ed Dlugokencky
+# contact_telephone: (303) 497-6228
+# contact_email: Ed.Dlugokencky@noaa.gov
+# comment: 
+# comment:  ************ COLLABORATORS ***************
+# comment: 
+# comment: NOAA thanks the following collaborators without
+# comment: whom these measurements would not be possible.
+# comment: 
+# collaborator_name: Instituto Nacional de Meteorologia e Geofisica
+# collaborator_name: [INMG]
+# comment: 
+# comment:  ************ RECIPROCITY AGREEMENT ***************
+# comment: 
+# comment: Use of these data implies an agreement to reciprocate.
+# comment: Laboratories making similar measurements agree to make their
+# comment: own data available to the general public and to the scientific
+# comment: community in an equally complete and easily accessible form.
+# comment: Modelers are encouraged to make available to the community,
+# comment: upon request, their own tools used in the interpretation
+# comment: of the ESRL data, namely well documented model code, transport
+# comment: fields, and additional information necessary for other
+# comment: scientists to repeat the work and to run modified versions.
+# comment: Model availability includes collaborative support for new
+# comment: users of the models.
+# comment:
+# comment:  ************ DATA DESCRIPTION ***************
+# comment:
+# description_site-code: azr
+# description_project-abbr: ccg_surface
+# description_strategy-abbr: flask
+# description_analysis-constraints: flag:..%
+# description_creation-time: 2019-07-16 13:39:13
+# comment:
+# comment:  ************ DATA DOCUMENTATION ***************
+# comment:
+# comment: Please refer to the species-specific README file in the
+# comment: appropriate directory folder at ftp://aftp.cmdl.noaa.gov/data/trace_gases/.
+# comment:
+# data_fields: site year month value
+AZR 1979 12   339.95
+AZR 1980  1   340.52
+AZR 1980  2   341.79
+AZR 1980  3   342.45
+AZR 1980  4   342.26
+AZR 1980  5   341.97
+AZR 1980  6   340.53
+AZR 1980  7   337.17
+AZR 1980  8   334.19
+AZR 1980  9   333.70
+AZR 1980 10   335.96
+AZR 1980 11   338.73
+AZR 1980 12   340.20
+AZR 1981  1   340.53
+AZR 1981  2   342.05
+AZR 1981  3   343.78
+AZR 1981  4   344.36
+AZR 1981  5   343.70
+AZR 1981  6   340.54
+AZR 1981  7   336.98
+AZR 1981  8   334.44
+AZR 1981  9   334.11
+AZR 1981 10   336.31
+AZR 1981 11   338.96
+AZR 1981 12   341.04
+AZR 1982  1   342.18
+AZR 1982  2   343.35
+AZR 1982  3   345.16
+AZR 1982  4   346.21
+AZR 1982  5   344.84
+AZR 1982  6   341.88
+AZR 1982  7   336.48
+AZR 1982  8   332.44
+AZR 1982  9   334.84
+AZR 1982 10   339.23
+AZR 1982 11   343.26
+AZR 1982 12   344.73
+AZR 1983  1   345.38
+AZR 1983  2   345.58
+AZR 1983  3   345.05
+AZR 1983  4   345.64
+AZR 1983  5   345.57
+AZR 1983  6   343.99
+AZR 1983  7   342.10
+AZR 1983  8   338.96
+AZR 1983  9   337.56
+AZR 1983 10   340.44
+AZR 1983 11   343.82
+AZR 1983 12   345.01
+AZR 1984  1   346.60
+AZR 1984  2   348.19
+AZR 1984  3   347.70
+AZR 1984  4   347.08
+AZR 1984  5   348.05
+AZR 1984  6   345.68
+AZR 1984  7   340.93
+AZR 1984  8   339.05
+AZR 1984  9   339.29
+AZR 1984 10   341.43
+AZR 1984 11   344.55
+AZR 1984 12   346.65
+AZR 1985  1   346.81
+AZR 1985  2   347.84
+AZR 1985  3   350.23
+AZR 1985  4   350.73
+AZR 1985  5   348.76
+AZR 1985  6   346.27
+AZR 1985  7   342.07
+AZR 1985  8   338.59
+AZR 1985  9   341.03
+AZR 1985 10   345.61
+AZR 1985 11   347.89
+AZR 1985 12   349.43
+AZR 1986  1   350.00
+AZR 1986  2   349.35
+AZR 1986  3   349.69
+AZR 1986  4   351.07
+AZR 1986  5   350.88
+AZR 1986  6   350.21
+AZR 1986  7   348.25
+AZR 1986  8   345.93
+AZR 1986  9   345.68
+AZR 1986 10   347.43
+AZR 1986 11   349.00
+AZR 1986 12   349.10
+AZR 1987  1   348.65
+AZR 1987  2   349.70
+AZR 1987  3   352.25
+AZR 1987  4   353.42
+AZR 1987  5   351.52
+AZR 1987  6   348.85
+AZR 1987  7   347.59
+AZR 1987  8   344.41
+AZR 1987  9   342.66
+AZR 1987 10   345.87
+AZR 1987 11   349.52
+AZR 1987 12   351.02
+AZR 1988  1   352.36
+AZR 1988  2   353.28
+AZR 1988  3   353.38
+AZR 1988  4   354.24
+AZR 1988  5   353.48
+AZR 1988  6   351.75
+AZR 1988  7   350.56
+AZR 1988  8   348.03
+AZR 1988  9   346.68
+AZR 1988 10   349.59
+AZR 1988 11   353.52
+AZR 1988 12   354.83
+AZR 1989  1   354.63
+AZR 1989  2   355.29
+AZR 1989  3   357.62
+AZR 1989  4   357.96
+AZR 1989  5   356.08
+AZR 1989  6   353.49
+AZR 1990 10   353.13
+AZR 1990 11   356.80
+AZR 1990 12   358.19
+AZR 1991  1   358.13
+AZR 1991  2   358.08
+AZR 1991  3   359.84
+AZR 1991  4   361.19
+AZR 1991  5   359.39
+AZR 1991  6   358.85
+AZR 1991  7   355.37
+AZR 1991  8   350.30
+AZR 1991  9   350.51
+AZR 1991 10   352.66
+AZR 1991 11   353.80
+AZR 1991 12   354.81
+AZR 1992  1   358.06
+AZR 1995  1   360.93
+AZR 1995  2   361.78
+AZR 1995  3   362.58
+AZR 1995  4   363.11
+AZR 1995  5   363.51
+AZR 1995  6   361.75
+AZR 1995  7   356.62
+AZR 1995  8   353.26
+AZR 1995  9   354.73
+AZR 1995 10   358.38
+AZR 1995 11   361.91
+AZR 1995 12   363.33
+AZR 1996  1   363.73
+AZR 1996  2   364.29
+AZR 1996  3   365.24
+AZR 1996  4   366.28
+AZR 1996  5   366.23
+AZR 1996  6   365.88
+AZR 1996  7   364.34
+AZR 1996  8   360.45
+AZR 1996  9   358.42
+AZR 1996 10   360.04
+AZR 1996 11   361.82
+AZR 1996 12   364.00
+AZR 1997  1   365.42
+AZR 1997  2   365.20
+AZR 1997  3   365.47
+AZR 1997  4   366.54
+AZR 1997  5   366.96
+AZR 1997  6   365.17
+AZR 1997  7   361.12
+AZR 1997  8   357.13
+AZR 1997  9   356.57
+AZR 1997 10   360.41
+AZR 1997 11   364.47
+AZR 1997 12   367.14
+AZR 1998  1   366.85
+AZR 1998  2   365.62
+AZR 1998  3   366.86
+AZR 1998  4   369.09
+AZR 1998  5   368.57
+AZR 1998  6   366.51
+AZR 1998  7   363.09
+AZR 1998  8   359.63
+AZR 1998  9   360.98
+AZR 1998 10   364.51
+AZR 1998 11   367.50
+AZR 1998 12   369.46
+AZR 1999  1   370.66
+AZR 1999  2   371.05
+AZR 1999  3   371.20
+AZR 1999  4   371.60
+AZR 1999  5   372.11
+AZR 1999  6   370.47
+AZR 1999  7   366.82
+AZR 1999  8   364.31
+AZR 1999  9   364.82
+AZR 1999 10   366.83
+AZR 1999 11   368.35
+AZR 1999 12   369.65
+AZR 2000  1   370.83
+AZR 2000  2   370.67
+AZR 2000  3   371.74
+AZR 2000  4   373.74
+AZR 2000  5   373.36
+AZR 2000  6   369.99
+AZR 2000  7   367.64
+AZR 2000  8   366.76
+AZR 2000  9   365.74
+AZR 2000 10   367.07
+AZR 2000 11   370.06
+AZR 2000 12   372.09
+AZR 2001  1   372.64
+AZR 2001  2   372.73
+AZR 2001  3   374.31
+AZR 2001  4   376.16
+AZR 2001  5   374.42
+AZR 2001  6   371.60
+AZR 2001  7   370.16
+AZR 2001  8   367.66
+AZR 2001  9   366.37
+AZR 2001 10   368.79
+AZR 2001 11   371.07
+AZR 2001 12   372.66
+AZR 2002  1   374.51
+AZR 2002  2   375.83
+AZR 2002  3   376.54
+AZR 2002  4   376.49
+AZR 2002  5   376.45
+AZR 2002  6   374.36
+AZR 2002  7   370.89
+AZR 2002  8   370.00
+AZR 2002  9   369.91
+AZR 2002 10   370.83
+AZR 2002 11   373.46
+AZR 2002 12   375.26
+AZR 2003  1   376.38
+AZR 2003  2   378.02
+AZR 2003  3   379.07
+AZR 2003  4   379.95
+AZR 2003  5   380.05
+AZR 2003  6   377.04
+AZR 2003  7   372.49
+AZR 2003  8   369.85
+AZR 2003  9   370.32
+AZR 2003 10   373.52
+AZR 2003 11   376.06
+AZR 2003 12   377.55
+AZR 2004  1   379.31
+AZR 2004  2   380.32
+AZR 2004  3   380.72
+AZR 2004  4   381.20
+AZR 2004  5   380.57
+AZR 2004  6   378.37
+AZR 2004  7   375.70
+AZR 2004  8   371.87
+AZR 2004  9   370.95
+AZR 2004 10   373.57
+AZR 2004 11   376.69
+AZR 2004 12   377.86
+AZR 2005  1   377.63
+AZR 2005  2   379.50
+AZR 2005  3   381.83
+AZR 2005  4   383.66
+AZR 2005  5   385.02
+AZR 2005  8   374.08
+AZR 2005  9   374.30
+AZR 2005 10   378.16
+AZR 2005 11   382.65
+AZR 2006  5   384.60
+AZR 2006  6   383.32
+AZR 2006  7   379.50
+AZR 2006  8   375.33
+AZR 2006  9   375.22
+AZR 2006 10   378.24
+AZR 2006 11   381.56
+AZR 2006 12   383.69
+AZR 2007  1   385.84
+AZR 2007  2   386.54
+AZR 2007  3   386.49
+AZR 2007  4   387.19
+AZR 2007  5   386.32
+AZR 2007  6   384.19
+AZR 2007  7   379.45
+AZR 2007  8   375.48
+AZR 2007  9   377.23
+AZR 2007 10   381.22
+AZR 2007 11   384.08
+AZR 2007 12   386.17
+AZR 2008  1   386.89
+AZR 2008  2   386.98
+AZR 2008  3   388.61
+AZR 2008  4   390.02
+AZR 2008  5   389.52
+AZR 2008  6   386.39
+AZR 2008  7   382.23
+AZR 2008  8   380.11
+AZR 2008  9   379.47
+AZR 2009  1   389.09
+AZR 2009  2   390.01
+AZR 2009  3   389.34
+AZR 2009  4   390.37
+AZR 2009  5   390.45
+AZR 2009  6   388.02
+AZR 2009  9   380.34
+AZR 2009 10   384.47
+AZR 2009 11   388.18
+AZR 2009 12   390.13
+AZR 2010  1   391.45
+AZR 2010  2   392.32
+AZR 2012  5   397.29
+AZR 2012  6   393.56
+AZR 2012  7   387.81
+AZR 2012  8   385.89
+AZR 2012  9   387.95
+AZR 2012 10   391.47
+AZR 2012 11   395.22
+AZR 2013  4   400.59
+AZR 2013  5   400.54
+AZR 2013  6   397.54
+AZR 2013  7   393.96
+AZR 2013  8   392.95
+AZR 2013  9   393.49
+AZR 2013 10   395.92
+AZR 2013 11   398.09
+AZR 2013 12   399.96
+AZR 2014  1   401.07
+AZR 2014  2   401.92
+AZR 2014  3   402.34
+AZR 2014  4   402.45
+AZR 2014  5   402.66
+AZR 2014  6   399.19
+AZR 2014  7   393.66
+AZR 2014  8   392.23
+AZR 2014  9   392.41
+AZR 2014 10   394.57
+AZR 2014 11   398.43
+AZR 2014 12   400.16
+AZR 2015  1   400.94
+AZR 2015  2   402.04
+AZR 2015  3   403.15
+AZR 2015  4   404.58
+AZR 2015  5   404.65
+AZR 2015  6   402.58
+AZR 2015  7   398.47
+AZR 2015  8   393.98
+AZR 2015  9   393.91
+AZR 2015 10   398.00
+AZR 2015 11   402.38
+AZR 2015 12   404.71
+AZR 2016  1   405.22
+AZR 2016  2   405.36
+AZR 2016  3   406.44
+AZR 2016  4   407.70
+AZR 2016  5   406.93
+AZR 2016  6   404.64
+AZR 2016  7   403.19
+AZR 2016  8   400.07
+AZR 2016  9   398.27
+AZR 2016 10   401.59
+AZR 2016 11   405.50
+AZR 2016 12   407.56
+AZR 2017  1   408.40
+AZR 2017  2   409.23
+AZR 2017  3   410.75
+AZR 2017 10   403.91
+AZR 2017 11   407.78
+AZR 2017 12   408.97
+AZR 2018  1   410.38
+AZR 2018  2   411.77
+AZR 2018  3   412.49
+AZR 2018  4   413.40
+AZR 2018  5   413.35
+AZR 2018  6   410.94
+AZR 2018  7   405.43
+AZR 2018  8   401.85
+AZR 2018  9   403.13
+AZR 2018 10   406.86
+AZR 2018 11   409.91
+AZR 2018 12   412.04
