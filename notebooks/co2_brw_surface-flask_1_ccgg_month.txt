@@ -1,0 +1,642 @@
+# number_of_header_lines: 70
+# comment:  
+# comment:  ************ USE OF ESRL GMD DATA ****************
+# comment:  
+# comment: These data are made freely available to the public and the
+# comment: scientific community in the belief that their wide dissemination
+# comment: will lead to greater understanding and new scientific insights.
+# comment: The availability of these data does not constitute publication
+# comment: of the data.  NOAA relies on the ethics and integrity of the user to
+# comment: ensure that ESRL receives fair credit for their work.  If the data 
+# comment: are obtained for potential use in a publication or presentation, 
+# comment: ESRL should be informed at the outset of the nature of this work.  
+# comment: If the ESRL data are essential to the work, or if an important 
+# comment: result or conclusion depends on the ESRL data, co-authorship
+# comment: may be appropriate.  This should be discussed at an early stage in
+# comment: the work.  Manuscripts using the ESRL data should be sent to ESRL
+# comment: for review before they are submitted for publication so we can
+# comment: ensure that the quality and limitations of the data are accurately
+# comment: represented.
+# comment:  
+# comment: Every effort is made to produce the most accurate and precise
+# comment: measurements possible.  However, we reserve the right to make
+# comment: corrections to the data based on recalibration of standard gases
+# comment: or for other reasons deemed scientifically justified.
+# comment: 
+# comment: We are not responsible for results and conclusions based on use
+# comment: of these data without regard to this warning.
+# comment: 
+# contact_parameter: CO2 CCGG (Individual Flasks)
+# contact_name: Ed Dlugokencky
+# contact_telephone: (303) 497-6228
+# contact_email: Ed.Dlugokencky@noaa.gov
+# comment: 
+# comment:  ************ COLLABORATORS ***************
+# comment: 
+# comment: NOAA thanks the following collaborators without
+# comment: whom these measurements would not be possible.
+# comment: 
+# collaborator_name: NOAA Earth System Research Laboratory, Global
+# collaborator_name: Monitoring Division [NOAA ESRL GMD]
+# collaborator_url: http://www.esrl.noaa.gov/gmd
+# comment: 
+# comment:  ************ RECIPROCITY AGREEMENT ***************
+# comment: 
+# comment: Use of these data implies an agreement to reciprocate.
+# comment: Laboratories making similar measurements agree to make their
+# comment: own data available to the general public and to the scientific
+# comment: community in an equally complete and easily accessible form.
+# comment: Modelers are encouraged to make available to the community,
+# comment: upon request, their own tools used in the interpretation
+# comment: of the ESRL data, namely well documented model code, transport
+# comment: fields, and additional information necessary for other
+# comment: scientists to repeat the work and to run modified versions.
+# comment: Model availability includes collaborative support for new
+# comment: users of the models.
+# comment:
+# comment:  ************ DATA DESCRIPTION ***************
+# comment:
+# description_site-code: brw
+# description_project-abbr: ccg_surface
+# description_strategy-abbr: flask
+# description_analysis-constraints: flag:..%
+# description_creation-time: 2019-07-16 13:39:20
+# comment:
+# comment:  ************ DATA DOCUMENTATION ***************
+# comment:
+# comment: Please refer to the species-specific README file in the
+# comment: appropriate directory folder at ftp://aftp.cmdl.noaa.gov/data/trace_gases/.
+# comment:
+# data_fields: site year month value
+BRW 1971  5   332.34
+BRW 1971  6   330.29
+BRW 1971  7   323.78
+BRW 1971  8   317.71
+BRW 1971  9   318.74
+BRW 1971 10   322.79
+BRW 1971 11   327.23
+BRW 1971 12   331.04
+BRW 1972  1   333.49
+BRW 1972  2   334.17
+BRW 1972  3   334.11
+BRW 1972  4   334.52
+BRW 1972  5   335.58
+BRW 1972  6   333.54
+BRW 1972  7   324.88
+BRW 1972  8   318.78
+BRW 1972  9   321.86
+BRW 1972 10   327.08
+BRW 1972 11   330.51
+BRW 1972 12   333.37
+BRW 1973  1   334.67
+BRW 1973  2   335.34
+BRW 1973  3   336.44
+BRW 1973  4   336.94
+BRW 1973  5   336.54
+BRW 1973  6   334.28
+BRW 1973  7   327.83
+BRW 1973  8   322.30
+BRW 1973  9   323.48
+BRW 1973 10   328.36
+BRW 1973 11   331.93
+BRW 1973 12   334.92
+BRW 1974  1   337.09
+BRW 1974  2   337.71
+BRW 1974  3   337.80
+BRW 1974  4   337.55
+BRW 1974  5   338.72
+BRW 1974  6   338.41
+BRW 1974  7   330.94
+BRW 1974  8   323.23
+BRW 1974  9   324.11
+BRW 1974 10   329.29
+BRW 1974 11   333.09
+BRW 1974 12   335.65
+BRW 1975  1   336.62
+BRW 1975  2   336.47
+BRW 1975  3   336.42
+BRW 1975  4   336.58
+BRW 1975  5   336.29
+BRW 1975  6   334.34
+BRW 1975  7   329.29
+BRW 1975  8   324.59
+BRW 1975  9   324.84
+BRW 1975 10   329.30
+BRW 1975 11   333.31
+BRW 1975 12   336.22
+BRW 1976  1   337.44
+BRW 1976  2   337.82
+BRW 1976  3   338.44
+BRW 1976  4   338.77
+BRW 1976  5   337.99
+BRW 1976  6   335.56
+BRW 1976  7   330.40
+BRW 1976  8   324.74
+BRW 1976  9   325.20
+BRW 1976 10   329.27
+BRW 1976 11   333.20
+BRW 1976 12   336.16
+BRW 1977  1   337.63
+BRW 1977  2   337.71
+BRW 1977  3   338.35
+BRW 1977  4   339.32
+BRW 1977  5   339.65
+BRW 1977  6   337.60
+BRW 1977  7   332.03
+BRW 1977  8   326.55
+BRW 1977  9   326.40
+BRW 1977 10   330.05
+BRW 1977 11   334.54
+BRW 1977 12   337.36
+BRW 1978  1   339.86
+BRW 1978  2   341.09
+BRW 1978  3   341.00
+BRW 1978  4   341.06
+BRW 1978  5   340.96
+BRW 1978  6   339.34
+BRW 1978  7   333.10
+BRW 1978  8   327.12
+BRW 1978  9   327.44
+BRW 1978 10   332.57
+BRW 1978 11   337.21
+BRW 1978 12   338.90
+BRW 1979  1   339.98
+BRW 1979  2   341.19
+BRW 1979  3   342.05
+BRW 1979  4   342.35
+BRW 1979  5   343.28
+BRW 1979  6   341.78
+BRW 1979  7   333.53
+BRW 1979  8   327.12
+BRW 1979  9   328.57
+BRW 1979 10   333.95
+BRW 1979 11   337.53
+BRW 1979 12   338.79
+BRW 1980  1   341.11
+BRW 1980  2   342.76
+BRW 1980  3   343.48
+BRW 1980  4   344.64
+BRW 1980  5   345.38
+BRW 1980  6   342.93
+BRW 1980  7   337.25
+BRW 1980  8   332.59
+BRW 1980  9   332.80
+BRW 1980 10   337.16
+BRW 1980 11   340.42
+BRW 1980 12   343.14
+BRW 1981  1   344.92
+BRW 1981  2   345.51
+BRW 1981  3   345.63
+BRW 1981  4   346.13
+BRW 1981  5   346.69
+BRW 1981  6   343.91
+BRW 1981  7   336.43
+BRW 1981  8   331.06
+BRW 1981  9   333.33
+BRW 1981 10   338.47
+BRW 1981 11   342.27
+BRW 1981 12   344.73
+BRW 1982  1   346.15
+BRW 1982  2   347.13
+BRW 1982  3   347.70
+BRW 1982  4   347.48
+BRW 1982  5   347.54
+BRW 1982  6   345.13
+BRW 1982  7   339.47
+BRW 1982  8   333.37
+BRW 1982  9   333.09
+BRW 1982 10   337.82
+BRW 1982 11   342.50
+BRW 1982 12   345.12
+BRW 1983  1   346.76
+BRW 1983  2   347.41
+BRW 1983  3   347.85
+BRW 1983  4   348.06
+BRW 1983  5   348.46
+BRW 1983  6   346.90
+BRW 1983  7   340.96
+BRW 1983  8   334.12
+BRW 1983  9   334.06
+BRW 1983 10   340.63
+BRW 1983 11   345.82
+BRW 1983 12   347.23
+BRW 1984  1   349.15
+BRW 1984  2   350.55
+BRW 1984  3   350.11
+BRW 1984  4   349.83
+BRW 1984  5   350.50
+BRW 1984  6   348.72
+BRW 1984  7   341.61
+BRW 1984  8   335.92
+BRW 1984  9   337.16
+BRW 1984 10   341.46
+BRW 1984 11   344.88
+BRW 1984 12   348.17
+BRW 1985  1   349.59
+BRW 1985  2   349.52
+BRW 1985  3   350.47
+BRW 1985  4   351.88
+BRW 1985  5   352.37
+BRW 1985  6   350.39
+BRW 1985  7   343.85
+BRW 1985  8   337.35
+BRW 1985  9   338.50
+BRW 1985 10   344.10
+BRW 1985 11   347.44
+BRW 1985 12   349.02
+BRW 1986  1   350.80
+BRW 1986  2   352.85
+BRW 1986  3   353.56
+BRW 1986  4   353.24
+BRW 1986  5   353.30
+BRW 1986  6   350.58
+BRW 1986  7   343.47
+BRW 1986  8   338.78
+BRW 1986  9   341.94
+BRW 1986 10   347.60
+BRW 1986 11   350.21
+BRW 1986 12   352.16
+BRW 1987  1   353.27
+BRW 1987  2   353.78
+BRW 1987  3   354.29
+BRW 1987  4   354.58
+BRW 1987  5   355.22
+BRW 1987  6   353.15
+BRW 1987  7   346.18
+BRW 1987  8   340.37
+BRW 1987  9   341.42
+BRW 1987 10   345.73
+BRW 1987 11   349.87
+BRW 1987 12   353.14
+BRW 1988  1   355.80
+BRW 1988  2   357.22
+BRW 1988  3   357.54
+BRW 1988  4   358.05
+BRW 1988  5   357.87
+BRW 1988  6   354.87
+BRW 1988  7   348.57
+BRW 1988  8   343.53
+BRW 1988  9   345.64
+BRW 1988 10   351.05
+BRW 1988 11   355.44
+BRW 1988 12   358.33
+BRW 1989  1   359.26
+BRW 1989  2   358.92
+BRW 1989  3   360.02
+BRW 1989  4   360.36
+BRW 1989  5   359.72
+BRW 1989  6   358.53
+BRW 1989  7   350.58
+BRW 1989  8   342.80
+BRW 1989  9   344.88
+BRW 1989 10   351.41
+BRW 1989 11   356.39
+BRW 1989 12   359.45
+BRW 1990  1   360.78
+BRW 1990  2   361.31
+BRW 1990  3   361.90
+BRW 1990  4   361.83
+BRW 1990  5   361.56
+BRW 1990  6   357.56
+BRW 1990  7   349.24
+BRW 1990  8   344.73
+BRW 1990  9   346.75
+BRW 1990 10   352.56
+BRW 1990 11   356.89
+BRW 1990 12   360.13
+BRW 1991  1   361.93
+BRW 1991  2   361.87
+BRW 1991  3   362.28
+BRW 1991  4   362.32
+BRW 1991  5   362.02
+BRW 1991  6   360.61
+BRW 1991  7   354.22
+BRW 1991  8   347.03
+BRW 1991  9   348.35
+BRW 1991 10   355.08
+BRW 1991 11   358.58
+BRW 1991 12   360.58
+BRW 1992  1   362.03
+BRW 1992  2   362.19
+BRW 1992  3   362.56
+BRW 1992  4   362.93
+BRW 1992  5   362.77
+BRW 1992  6   360.64
+BRW 1992  7   353.86
+BRW 1992  8   347.38
+BRW 1992  9   348.56
+BRW 1992 10   353.00
+BRW 1992 11   357.06
+BRW 1992 12   361.00
+BRW 1993  1   362.66
+BRW 1993  2   362.81
+BRW 1993  3   363.47
+BRW 1993  4   363.85
+BRW 1993  5   363.59
+BRW 1993  6   359.69
+BRW 1993  7   352.32
+BRW 1993  8   348.06
+BRW 1993  9   350.10
+BRW 1993 10   354.27
+BRW 1993 11   358.74
+BRW 1993 12   361.43
+BRW 1994  1   362.80
+BRW 1994  2   364.42
+BRW 1994  3   365.04
+BRW 1994  4   364.33
+BRW 1994  5   364.55
+BRW 1994  6   362.19
+BRW 1994  7   354.38
+BRW 1994  8   348.20
+BRW 1994  9   350.71
+BRW 1994 10   356.65
+BRW 1994 11   361.77
+BRW 1994 12   364.43
+BRW 1995  1   365.82
+BRW 1995  2   366.82
+BRW 1995  3   366.73
+BRW 1995  4   366.48
+BRW 1995  5   366.32
+BRW 1995  6   363.78
+BRW 1995  7   356.54
+BRW 1995  8   351.58
+BRW 1995  9   353.22
+BRW 1995 10   358.15
+BRW 1995 11   363.68
+BRW 1995 12   366.16
+BRW 1996  1   366.99
+BRW 1996  2   368.31
+BRW 1996  3   368.19
+BRW 1996  4   368.28
+BRW 1996  5   369.64
+BRW 1996  6   368.39
+BRW 1996  7   362.07
+BRW 1996  8   354.88
+BRW 1996  9   355.65
+BRW 1996 10   361.20
+BRW 1996 11   363.82
+BRW 1996 12   366.35
+BRW 1997  1   369.07
+BRW 1997  2   369.38
+BRW 1997  3   369.00
+BRW 1997  4   369.83
+BRW 1997  5   370.74
+BRW 1997  6   368.06
+BRW 1997  7   359.25
+BRW 1997  8   354.68
+BRW 1997  9   357.76
+BRW 1997 10   362.23
+BRW 1997 11   365.75
+BRW 1997 12   368.05
+BRW 1998  1   369.29
+BRW 1998  2   370.45
+BRW 1998  3   371.16
+BRW 1998  4   371.10
+BRW 1998  5   371.75
+BRW 1998  6   369.98
+BRW 1998  7   362.55
+BRW 1998  8   357.35
+BRW 1998  9   360.06
+BRW 1998 10   364.85
+BRW 1998 11   369.12
+BRW 1998 12   373.05
+BRW 1999  1   374.25
+BRW 1999  2   373.89
+BRW 1999  3   374.25
+BRW 1999  4   374.74
+BRW 1999  5   375.51
+BRW 1999  6   372.38
+BRW 1999  7   364.54
+BRW 1999  8   359.12
+BRW 1999  9   360.47
+BRW 1999 10   365.45
+BRW 1999 11   371.45
+BRW 1999 12   373.91
+BRW 2000  1   375.08
+BRW 2000  2   375.75
+BRW 2000  3   375.17
+BRW 2000  4   375.40
+BRW 2000  5   376.46
+BRW 2000  6   373.78
+BRW 2000  7   365.71
+BRW 2000  8   360.02
+BRW 2000  9   361.82
+BRW 2000 10   366.89
+BRW 2000 11   370.88
+BRW 2000 12   373.49
+BRW 2001  1   375.35
+BRW 2001  2   376.32
+BRW 2001  3   376.91
+BRW 2001  4   377.43
+BRW 2001  5   377.69
+BRW 2001  6   375.17
+BRW 2001  7   366.88
+BRW 2001  8   361.09
+BRW 2001  9   363.13
+BRW 2001 10   368.64
+BRW 2001 11   373.19
+BRW 2001 12   376.59
+BRW 2002  1   378.05
+BRW 2002  2   378.18
+BRW 2002  3   378.97
+BRW 2002  4   379.00
+BRW 2002  5   378.52
+BRW 2002  6   376.98
+BRW 2002  7   370.09
+BRW 2002  8   363.40
+BRW 2002  9   365.76
+BRW 2002 10   371.68
+BRW 2002 11   375.38
+BRW 2002 12   377.89
+BRW 2003  1   379.76
+BRW 2003  2   381.91
+BRW 2003  3   382.27
+BRW 2003  4   381.56
+BRW 2003  5   382.23
+BRW 2003  6   379.80
+BRW 2003  7   371.76
+BRW 2003  8   366.79
+BRW 2003  9   368.54
+BRW 2003 10   373.53
+BRW 2003 11   378.69
+BRW 2003 12   382.19
+BRW 2004  1   382.88
+BRW 2004  2   382.62
+BRW 2004  3   382.66
+BRW 2004  4   383.71
+BRW 2004  5   384.08
+BRW 2004  6   379.88
+BRW 2004  7   371.89
+BRW 2004  8   366.59
+BRW 2004  9   368.71
+BRW 2004 10   373.77
+BRW 2004 11   378.85
+BRW 2004 12   381.86
+BRW 2005  1   383.76
+BRW 2005  2   385.10
+BRW 2005  3   385.45
+BRW 2005  4   385.52
+BRW 2005  5   385.54
+BRW 2005  6   383.17
+BRW 2005  7   376.20
+BRW 2005  8   369.80
+BRW 2005  9   372.49
+BRW 2005 10   378.48
+BRW 2005 11   382.98
+BRW 2005 12   385.73
+BRW 2006  1   386.58
+BRW 2006  2   387.21
+BRW 2006  3   387.59
+BRW 2006  4   387.49
+BRW 2006  5   388.49
+BRW 2006  6   387.16
+BRW 2006  7   378.91
+BRW 2006  8   372.81
+BRW 2006  9   376.75
+BRW 2006 10   382.95
+BRW 2006 11   385.03
+BRW 2006 12   387.85
+BRW 2007  1   389.57
+BRW 2007  2   388.82
+BRW 2007  3   389.62
+BRW 2007  4   390.34
+BRW 2007  5   389.89
+BRW 2007  6   386.55
+BRW 2007  7   378.21
+BRW 2007  8   373.57
+BRW 2007  9   376.01
+BRW 2007 10   380.73
+BRW 2007 11   385.12
+BRW 2007 12   388.97
+BRW 2008  1   391.53
+BRW 2008  2   392.97
+BRW 2008  3   393.29
+BRW 2008  4   393.32
+BRW 2008  5   393.01
+BRW 2008  6   389.31
+BRW 2008  7   381.78
+BRW 2008  8   376.57
+BRW 2008  9   377.49
+BRW 2008 10   382.21
+BRW 2008 11   387.04
+BRW 2008 12   391.63
+BRW 2009  1   393.00
+BRW 2009  2   392.77
+BRW 2009  3   393.66
+BRW 2009  4   394.60
+BRW 2009  5   394.17
+BRW 2009  6   391.58
+BRW 2009  7   383.81
+BRW 2009  8   376.49
+BRW 2009  9   378.94
+BRW 2009 10   383.91
+BRW 2009 11   387.69
+BRW 2009 12   392.32
+BRW 2010  1   394.32
+BRW 2010  2   394.16
+BRW 2010  3   394.93
+BRW 2010  4   396.14
+BRW 2010  5   395.70
+BRW 2010  6   392.50
+BRW 2010  7   385.45
+BRW 2010  8   379.88
+BRW 2010  9   383.27
+BRW 2010 10   388.22
+BRW 2010 11   392.78
+BRW 2010 12   397.06
+BRW 2011  1   397.76
+BRW 2011  2   397.52
+BRW 2011  3   398.47
+BRW 2011  4   398.84
+BRW 2011  5   398.26
+BRW 2011  6   394.53
+BRW 2011  7   386.03
+BRW 2011  8   380.10
+BRW 2011  9   383.69
+BRW 2011 10   389.68
+BRW 2011 11   394.59
+BRW 2011 12   397.61
+BRW 2012  1   398.96
+BRW 2012  2   399.03
+BRW 2012  3   399.07
+BRW 2012  4   400.12
+BRW 2012  5   400.93
+BRW 2012  6   397.35
+BRW 2012  7   387.39
+BRW 2012  8   381.51
+BRW 2012  9   385.82
+BRW 2012 10   393.71
+BRW 2012 11   398.00
+BRW 2012 12   399.22
+BRW 2013  1   400.19
+BRW 2013  2   402.01
+BRW 2013  3   402.91
+BRW 2013  4   402.57
+BRW 2013  5   403.11
+BRW 2013  6   400.18
+BRW 2013  7   392.09
+BRW 2013  8   387.35
+BRW 2013  9   389.08
+BRW 2013 10   394.64
+BRW 2013 11   399.55
+BRW 2013 12   402.10
+BRW 2014  1   403.28
+BRW 2014  2   404.69
+BRW 2014  3   405.14
+BRW 2014  4   405.23
+BRW 2014  5   405.56
+BRW 2014  6   402.62
+BRW 2014  7   394.97
+BRW 2014  8   389.23
+BRW 2014  9   389.77
+BRW 2014 10   395.18
+BRW 2014 11   400.91
+BRW 2014 12   404.46
+BRW 2015  1   405.50
+BRW 2015  2   406.84
+BRW 2015  3   407.32
+BRW 2015  4   407.17
+BRW 2015  5   407.32
+BRW 2015  6   402.98
+BRW 2015  7   394.10
+BRW 2015  8   390.11
+BRW 2015  9   392.72
+BRW 2015 10   397.61
+BRW 2015 11   403.63
+BRW 2015 12   407.64
+BRW 2016  1   408.64
+BRW 2016  2   408.42
+BRW 2016  3   408.85
+BRW 2016  4   409.33
+BRW 2016  5   409.42
+BRW 2016  6   406.30
+BRW 2016  7   398.36
+BRW 2016  8   392.65
+BRW 2016  9   397.21
+BRW 2016 10   404.60
+BRW 2016 11   407.93
+BRW 2016 12   410.48
+BRW 2017  1   412.99
+BRW 2017  2   414.05
+BRW 2017  3   414.20
+BRW 2017  4   413.64
+BRW 2017  5   413.30
+BRW 2017  6   410.33
+BRW 2017  7   402.01
+BRW 2017  8   396.01
+BRW 2017  9   397.38
+BRW 2017 10   403.95
+BRW 2017 11   409.75
+BRW 2017 12   411.59
+BRW 2018  1   412.69
+BRW 2018  2   413.77
+BRW 2018  3   414.60
+BRW 2018  4   415.70
+BRW 2018  5   416.29
+BRW 2018  6   413.43
+BRW 2018  7   404.85
+BRW 2018  8   398.51
+BRW 2018  9   400.03
+BRW 2018 10   405.94
+BRW 2018 11   411.50
+BRW 2018 12   415.08
