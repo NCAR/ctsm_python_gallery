@@ -2,6 +2,23 @@
 import xarray as xr
 import numpy as np
 
+def agefuel_to_age_by_fuel(agefuel_var, dataset):
+    """function to reshape a fates multiplexed age and fuel size indexed variable to one indexed by age and fuel size
+    first argument should be an xarray DataArray that has the FATES AGEFUEL dimension
+    second argument should be an xarray Dataset that has the FATES FUEL dimension 
+    (possibly the dataset encompassing the dataarray being transformed)
+    returns an Xarray DataArray with the size and pft dimensions disentangled"""
+    n_age = len(dataset.fates_levage)
+    ds_out = (agefuel_var.rolling(fates_levagefuel=n_age, center=False)
+            .construct("fates_levage")
+            .isel(fates_levagefuel=slice(n_age-1, None, n_age))
+            .rename({'fates_levagefuel':'fates_levfuel'})
+            .assign_coords({'fates_levage':dataset.fates_levage})
+            .assign_coords({'fates_levfuel':dataset.fates_levfuel}))
+    ds_out.attrs['long_name'] = agefuel_var.attrs['long_name']
+    ds_out.attrs['units'] = agefuel_var.attrs['units']
+    return(ds_out)
+
 def scpf_to_scls_by_pft(scpf_var, dataset):
     """function to reshape a fates multiplexed size and pft-indexed variable to one indexed by size class and pft
     first argument should be an xarray DataArray that has the FATES SCPF dimension
