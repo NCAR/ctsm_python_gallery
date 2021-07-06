@@ -89,9 +89,9 @@ def time_set_mid(ds, time_name):
 
     # set ds[time_name] to tb_mid
     if ds[time_name].dtype == np.dtype('O'):
-        ds[time_name].values = cftime.num2date(tb_mid, units=units, calendar=calendar)
+        ds[time_name] = cftime.num2date(tb_mid, units=units, calendar=calendar)
     else:
-        ds[time_name].values = tb_mid
+        ds[time_name] = tb_mid
 
     return ds
 
