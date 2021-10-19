@@ -7,6 +7,7 @@ from ctsm_py import utils
 import matplotlib.pyplot as plt
 import warnings
 import glob
+import cftime
 
 pftname =   ["needleleaf_evergreen_temperate_tree",
              "needleleaf_evergreen_boreal_tree",
@@ -180,3 +181,69 @@ plt.title(thisVar)
 plt.ylabel(this_ds.variables[thisVar].attrs['units'])
 plt.legend()
 plt.show()
+
+
+# %% Get sowing and harvest dates
+
+# Get year and day number
+def get_jday(cftime_datetime_object):
+    return cftime.datetime.timetuple(cftime_datetime_object).tm_yday
+jday = np.array([get_jday(d) for d in this_ds.indexes["time"]])
+def get_year(cftime_datetime_object):
+    return cftime.datetime.timetuple(cftime_datetime_object).tm_year
+year = np.array([get_year(d) for d in this_ds.indexes["time"]])
+year_jday = np.stack((year, jday), axis=1)
+
+# Find sowing and harvest dates in dataset
+cphase_da = get_thisVar_da("CPHASE", this_ds, vegtype_str)
+false_1xNpft = np.full((1,np.size(cphase_da.pft.values)), fill_value=False)
+is_sdate = np.bitwise_and( \
+    cphase_da.values[:-1,:]==4, \
+    cphase_da.values[1:,:]<4)
+is_sdate = np.concatenate((is_sdate, false_1xNpft))
+is_hdate = np.bitwise_and( \
+    cphase_da.values[:-1,:]<4, \
+    cphase_da.values[1:,:]==4)
+is_hdate = np.concatenate((is_hdate, false_1xNpft))
+
+# Define function for extracting an array of sowing or harvest dates (each row: year, DOY) for a given crop
+def get_dates(thisCrop, vegtype_str, is_somedate, year_jday):
+    is_somedate_thiscrop = is_somedate[:,[d==thisCrop for d in vegtype_str]]
+    is_somedate_thiscrop = np.squeeze(is_somedate_thiscrop)
+    return year_jday[is_somedate_thiscrop,:]
+
+# Loop through crops and print their sowing and harvest dates
+for thisCrop in cphase_da.pft.values:
+    
+    # Get dates
+    this_sdates = get_dates(thisCrop, cphase_da.pft.values, is_sdate, year_jday)
+    this_hdates = get_dates(thisCrop, cphase_da.pft.values, is_hdate, year_jday)
+    
+    # The first event in a dataset could be a harvest. If so, discard.
+    if this_sdates[0,1] > this_hdates[0,1]:
+        this_hdates = this_hdates[1:,:]
+    
+    # There should be at least as many sowings as harvests
+    nsow = np.shape(this_sdates)[0]
+    nhar = np.shape(this_hdates)[0]
+    if nsow < nhar:
+        raise ValueError("%d harvests but only %d sowings" % \
+            (nhar, nsow))
+
+    # If there are more sowings than harvests, append NaN for last growing season
+    if nsow > nhar:
+        if nsow > nhar + 1:
+            raise ValueError("%d sowings but only %d harvests" % \
+            (nsow, nhar))
+        this_hdates = np.concatenate(( \
+            this_hdates[1:,:], 
+            np.array([[this_sdates[-1,0], np.nan]])))
+    
+    # Ensure harvests occurred either the same year as sowing or the next year
+    if any(this_hdates[:,0] > this_sdates[:,0] + 1):
+        raise ValueError("Some harvest does not occur in either the same year as or year after corresponding sowing")
+    
+    # Print dates. Each row: sowing year, sowing DOY, harvest DOY
+    this_dates = np.concatenate((this_sdates, this_hdates[:,1:]), axis=1)
+    print(thisCrop)
+    print(this_dates)
