@@ -139,32 +139,36 @@ vegtype_str = list(np.array(pftname)[vegtype_int.values])
 # %% Read variable
 
 # Which variable?
-thisVar = "NPP"
+thisVar = "CPHASE"
 
-# Make DataArray for this variable
-thisvar_da = np.array(this_ds.variables[thisVar])
-theseDims = this_ds.variables[thisVar].dims
-thisvar_da = xr.DataArray(thisvar_da, 
-    dims = theseDims)
-
-# Define coordinates of this variable's DataArray
-dimsDict = dict()
-for thisDim in theseDims:
-    if thisDim == "time":
-        dimsDict[thisDim] = this_ds.time
-    elif thisDim == "pft":
-        dimsDict[thisDim] = vegtype_str
-    else:
-        raise ValueError("Unknown dimension for coordinate assignment: " + thisDim)
-thisvar_da = thisvar_da.assign_coords(dimsDict)
-
-# Trim to managed crops
 def is_this_mgd_crop(x):
     notcrop_list = ["tree", "grass", "shrub", "unmanaged"]
     return not any(n in x for n in notcrop_list)
-is_crop = [ is_this_mgd_crop(x) for x in thisvar_da.pft.values ]
-thisvar_da = thisvar_da[:, is_crop]
+def get_thisVar_da(thisVar, this_ds, vegtype_str):
+    # Make DataArray for this variable
+    thisvar_da = np.array(this_ds.variables[thisVar])
+    theseDims = this_ds.variables[thisVar].dims
+    thisvar_da = xr.DataArray(thisvar_da, 
+        dims = theseDims)
 
+    # Define coordinates of this variable's DataArray
+    dimsDict = dict()
+    for thisDim in theseDims:
+        if thisDim == "time":
+            dimsDict[thisDim] = this_ds.time
+        elif thisDim == "pft":
+            dimsDict[thisDim] = vegtype_str
+        else:
+            raise ValueError("Unknown dimension for coordinate assignment: " + thisDim)
+    thisvar_da = thisvar_da.assign_coords(dimsDict)
+
+    # Trim to managed crops
+    is_crop = [ is_this_mgd_crop(x) for x in thisvar_da.pft.values ]
+    thisvar_da = thisvar_da[:, is_crop]
+
+    return thisvar_da
+
+get_thisVar_da(thisVar, this_ds, vegtype_str)
 
 # %% Plot timeseries
 
