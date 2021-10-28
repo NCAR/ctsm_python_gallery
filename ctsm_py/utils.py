@@ -364,3 +364,8 @@ def is_this_mgd_crop(this_pft):
     return not any(n in this_pft for n in notcrop_list)
 
 
+# Get boolean list of whether each PFT in list is a managed crop
+def is_each_mgd_crop(this_pftlist):
+    return [is_this_mgd_crop(x) for x in this_pftlist]
+
+
