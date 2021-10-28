@@ -260,6 +260,30 @@ pftlist =  ["not_vegetated",
             "irrigated_tropical_soybean"]
 
 
+# Get PFT of each patch, in both integer and string forms
+def ivt_int_str(this_ds, this_pftlist):
+    # First, get all the integer values; should be time*pft or pft*time. We will eventually just take the first timestep.
+    vegtype_int = this_ds.pfts1d_itype_veg
+    vegtype_int.values = vegtype_int.values.astype(int)
+
+    # Make sure no vegtype changes over time.
+    time_index = vegtype_int.dims.index("time")
+    uniques = np.unique(vegtype_int.values, \
+        axis=time_index)
+    max_num_ivt_per_patch = uniques.shape[time_index]
+    if max_num_ivt_per_patch != 1:
+        raise ValueError("Some veg type changes over time")
+    
+    # Take the first timestep.
+    vegtype_int = vegtype_int.isel(time=0)
+
+    # Convert to strings.
+    vegtype_str = list(np.array(this_pftlist)[vegtype_int.values])
+
+    # Return a dictionary with both results
+    return {"int": vegtype_int, "str": vegtype_str, "all_str": this_pftlist}
+
+
 # Import a dataset that's spread over multiple files, only including specified variables. Concatenate by time.
 def import_ds_from_filelist(filelist, myVars=None):
 
