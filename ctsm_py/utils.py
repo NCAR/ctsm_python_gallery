@@ -357,3 +357,10 @@ def get_thisVar_da(thisVar, this_ds, vegtypes_str):
     return thisvar_da
 
 
+# Is this PFT a managed crop?
+# SSR TODO: Require that input be a single string.
+def is_this_mgd_crop(this_pft):
+    notcrop_list = ["tree", "grass", "shrub", "unmanaged", "not_vegetated"]
+    return not any(n in this_pft for n in notcrop_list)
+
+
