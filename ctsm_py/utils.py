@@ -285,7 +285,7 @@ def ivt_int_str(this_ds, this_pftlist):
 
 
 # Import a dataset that's spread over multiple files, only including specified variables. Concatenate by time.
-def import_ds_from_filelist(filelist, myVars=None):
+def import_ds_from_filelist(filelist, this_pftlist, myVars=None):
 
     # Set up function to drop unwanted vars in preprocessing of open_mfdataset(), making sure to include any unspecified variables that will be useful in gridding.
     def mfdataset_preproc(ds, vars_to_import):
@@ -328,4 +328,9 @@ def import_ds_from_filelist(filelist, myVars=None):
         concat_dim="time", 
         preprocess=mfdataset_preproc_closure)
     
-    return this_ds
+    # Get vegetation type info
+    vegtypes = ivt_int_str(this_ds, this_pftlist)
+    
+    return this_ds, vegtypes
+
+
