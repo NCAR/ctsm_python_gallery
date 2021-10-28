@@ -369,3 +369,24 @@ def is_each_mgd_crop(this_pftlist):
     return [is_this_mgd_crop(x) for x in this_pftlist]
 
 
+# Given a DataArray, remove all PFTs except managed crops.
+def trim_to_mgd_crop(thisvar_da):
+
+    # Handle input DataArray without pft dimension
+    if not any(np.array(list(thisvar_da.dims)) == "pft"):
+        print("Input DataArray has no pft dimension and therefore trim_to_mgd_crop() has no effect.")
+        return thisvar_da
+    
+    # Throw error if pft dimension isn't strings
+    if not isinstance(thisvar_da.pft.values[0], str):
+        raise TypeError("Input DataArray's pft dimension is not in string form, and therefore trim_to_mgd_crop() cannot work.")
+    
+    # Get boolean list of whether each PFT is a managed crop
+    is_crop = is_each_mgd_crop(thisvar_da.pft.values)
+
+    # Warn if no managed crops were found, but still return the empty result
+    if np.all(np.bitwise_not(is_crop)):
+        print("No managed crops found! Returning empty DataArray.")
+    return thisvar_da.isel(pft = [i for i, x in enumerate(is_crop) if x])
+
+
