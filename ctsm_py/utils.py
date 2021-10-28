@@ -390,3 +390,49 @@ def trim_to_mgd_crop(thisvar_da):
     return thisvar_da.isel(pft = [i for i, x in enumerate(is_crop) if x])
 
 
+# Make a geographically gridded DataArray (with PFT dimension) of one timestep in a given variable within a DataSet.
+def grid_one_timestep(this_ds, thisVar, time_index, vegtypes):
+
+    # Get this variable's values for this time step
+    thisvar_da = get_thisVar_da(thisVar, this_ds, vegtypes["str"])
+    thisvar_da_1time = thisvar_da[dict(time=time_index)]
+
+    # Get gridcell indices for this time step
+    ixy_da = get_thisVar_da("pfts1d_ixy", this_ds, vegtypes["str"])
+    jxy_da = get_thisVar_da("pfts1d_jxy", this_ds, vegtypes["str"])
+    ixy = ixy_da[dict(time=time_index)]
+    jxy = jxy_da[dict(time=time_index)]
+
+    # Get PFT indices for this time step
+    vt_da = get_thisVar_da("pfts1d_itype_veg", this_ds, vegtypes["str"])
+    vt = vt_da[dict(time=time_index)].values
+    
+    # Get dataset lon/lat grid
+    lon = this_ds.lon
+    lat = this_ds.lat
+
+    # Set up empty array: PFT * lat * lon
+    npft = np.max(vegtypes["int"].values) + 1
+    nlat = len(lat.values)
+    nlon = len(lon.values)
+    thisvar_pyx = np.empty([npft, nlat, nlon])
+
+    # Fill with this variable
+    thisvar_pyx[vt, 
+        jxy.values.astype(int) - 1, 
+        ixy.values.astype(int) - 1] = thisvar_da_1time.values
+
+    # Assign coordinates and name
+    thisvar_pyx = xr.DataArray(thisvar_pyx, dims=("pft","lat","lon"))
+    thisvar_pyx = thisvar_pyx.assign_coords( \
+        pft=vegtypes["all_str"],
+        lat=lat.values,
+        lon=lon.values)
+    thisvar_pyx.name = thisVar
+
+    # Restrict to managed crops
+    thisvar_pyx = thisvar_pyx[is_each_mgd_crop(thisvar_pyx.pft.values)]
+
+    return thisvar_pyx
+
+
