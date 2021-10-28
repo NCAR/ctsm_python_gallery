@@ -177,3 +177,48 @@ def cyclic_dataset(ds, coord='lon'):
 
     return new_ds
 '''
+
+# Import a dataset that's spread over multiple files, only including specified variables. Concatenate by time.
+def import_ds_from_filelist(filelist, myVars):
+
+    # Set up function to drop unwanted vars in preprocessing of open_mfdataset(), making sure to include any unspecified variables that will be useful in gridding.
+    def mfdataset_preproc(ds, vars_to_import):
+
+        # Get list of dimensions present in variables in vars_to_import.
+        dimList = []
+        for thisVar in vars_to_import:
+            # list(set(x)) returns a list of the unique items in x
+            dimList = list(set(dimList + list(ds.variables[thisVar].dims)))
+        
+        # Get any _1d variables that are associated with those dimensions. These will be useful in gridding.
+        onedVars = []
+        for thisDim in dimList:
+            pattern = re.compile(f"{thisDim}.*1d")
+            matches = [x for x in list(ds.keys()) if pattern.search(x) != None]
+            onedVars = list(set(onedVars + matches))
+        
+        # Add dimensions and _1d variables to vars_to_import
+        vars_to_import = list(set(vars_to_import \
+            + dimList + onedVars))
+
+        # Get list of variables to drop
+        varlist = list(ds.variables)
+        vars_to_drop = list(np.setdiff1d(varlist, vars_to_import))
+
+        # Drop them
+        ds = ds.drop_vars(vars_to_drop)
+
+        # Finish import
+        ds = xr.decode_cf(ds, decode_times = True)
+        return ds
+
+    # xr.open_mfdataset()'s "preprocess" argument requires a function that only takes one variable (an xarray.Dataset object). Wrapping mfdataset_preproc() in this lambda function allows this. Could also just allow mfdataset_preproc() to access the myVars directly, but that's bad practice as it could lead to scoping issues.
+    mfdataset_preproc_closure = \
+        lambda ds: mfdataset_preproc(ds, myVars)
+
+    # Import
+    this_ds = xr.open_mfdataset(filelist, \
+        concat_dim="time", 
+        preprocess=mfdataset_preproc_closure)
+    
+    return this_ds
