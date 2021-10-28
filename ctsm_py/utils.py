@@ -334,3 +334,26 @@ def import_ds_from_filelist(filelist, this_pftlist, myVars=None):
     return this_ds, vegtypes
 
 
+# Return a DataArray, with defined coordinates (PFT as string), for a given variable in a dataset
+def get_thisVar_da(thisVar, this_ds, vegtypes_str):
+
+    # Make DataArray for this variable
+    thisvar_da = np.array(this_ds.variables[thisVar])
+    theseDims = this_ds.variables[thisVar].dims
+    thisvar_da = xr.DataArray(thisvar_da, 
+        dims = theseDims)
+
+    # Define coordinates of this variable's DataArray
+    dimsDict = dict()
+    for thisDim in theseDims:
+        if thisDim == "pft":
+            dimsDict[thisDim] = vegtypes_str
+        elif any(np.array(list(this_ds.dims.keys())) == thisDim):
+                dimsDict[thisDim] = this_ds[thisDim]
+        else:
+            raise ValueError("Unknown dimension for coordinate assignment: " + thisDim)
+    thisvar_da = thisvar_da.assign_coords(dimsDict)
+
+    return thisvar_da
+
+
