@@ -200,7 +200,7 @@ def import_ds_from_filelist(filelist, myVars=None):
             
             # Add dimensions and _1d variables to vars_to_import
             vars_to_import = list(set(vars_to_import \
-                + dimList + onedVars))
+                + list(ds.dims) + onedVars))
 
             # Get list of variables to drop
             varlist = list(ds.variables)
