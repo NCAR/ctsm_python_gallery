@@ -236,15 +236,22 @@ def xr_flexsel(xr_object, time=None, vegtype=None):
     if vegtype !=  None:
         vegtype_type = check_sel_type(vegtype)
         if vegtype_type == int:
+            raise TypeError("Add handling of vegtype_type == int")
              # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
             if isinstance(vegtype, int):
-                xr_object = xr_object.isel(vegtype=slice(vegtype,vegtype+1))
+                xr_object = xr_object.isel(patches1d_itype_veg=slice(vegtype,vegtype+1))
             else:
-                xr_object = xr_object.isel(vegtype=vegtype)
-        elif vegtype_type == str:
-            xr_object = xr_object.sel(time=vegtype)
+                xr_object = xr_object.isel(patches1d_itype_veg=vegtype)
+        elif vegtype_type == str or vegtype_type == list:
+            # SSR TODO: Test whether it's faster to convert vegtype list to int and compare that way
+            if vegtype_type == str:
+                vegtype = [vegtype]
+            is_vegtype = is_each_vegtype(xr_object.patches1d_itype_veg_str, \
+                vegtype, "ok_exact")
+            xr_object = xr_object.sel(patch=[i for i, x in enumerate(is_vegtype) if x])
         else:
-            raise TypeError(f"'vegtype' argument must be type int, str, or slice of those (not {type(vegtype)})")
+            raise TypeError(f"'vegtype' argument must be type int, str, or slice of those, or list of str (not {type(vegtype)})")
+    
     return xr_object
 
 
@@ -393,7 +400,22 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
     if len(pft2patch_dict) > 0:
         ds = ds.rename(pft2patch_dict)
     
-    # if vegtypes_to_import != None:
+    # Add vegetation type info
+    this_pftlist = define_pftlist()
+    ivt_int_str(ds, this_pftlist) # Includes check of whether vegtype changes over time anywhere
+    vegtype_da = get_vegtype_str_da(this_pftlist)
+    patches1d_itype_veg_str = vegtype_da.values[ds.isel(time=0).patches1d_itype_veg.values.astype(int)]
+    npatch = len(patches1d_itype_veg_str)
+    patches1d_itype_veg_str = xr.DataArray( \
+        patches1d_itype_veg_str,
+        coords={"patch": np.arange(0,npatch)}, 
+        dims=["patch"],
+        name = "patches1d_itype_veg_str")
+    ds = xr.merge([ds, vegtype_da, patches1d_itype_veg_str])
+
+    # Restrict to veg. types of interest, if any
+    if vegtypes_to_import != None:
+        ds = xr_flexsel(ds, vegtype=vegtypes_to_import)
 
     # Finish import
     ds = xr.decode_cf(ds, decode_times = True)
@@ -415,19 +437,6 @@ def import_ds(filelist, myVars=None, myVegtypes=None):
         this_ds = xr.open_dataset(filelist)
         this_ds = mfdataset_preproc(this_ds, myVars)
         this_ds = this_ds.compute()
-    
-    # Add vegetation type info
-    this_pftlist = define_pftlist()
-    ivt_int_str(this_ds, this_pftlist) # Includes check of whether vegtype changes over time anywhere
-    vegtype_da = get_vegtype_str_da(this_pftlist)
-    patches1d_itype_veg_str = vegtype_da.values[this_ds.isel(time=0).patches1d_itype_veg.values.astype(int)]
-    npatch = len(patches1d_itype_veg_str)
-    patches1d_itype_veg_str = xr.DataArray( \
-        patches1d_itype_veg_str,
-        coords={"patch": np.arange(0,npatch)}, 
-        dims=["patch"],
-        name = "patches1d_itype_veg_str")
-    this_ds = xr.merge([this_ds, vegtype_da, patches1d_itype_veg_str])
     
     return this_ds
 
