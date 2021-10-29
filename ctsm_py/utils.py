@@ -178,6 +178,56 @@ def cyclic_dataset(ds, coord='lon'):
     return new_ds
 '''
 
+# Check the type of a selection
+def check_sel_type(this_sel):
+    if isinstance(this_sel, slice):
+        if this_sel == slice(0):
+            raise ValueError("slice(0) will be empty")
+        elif this_sel.start != None:
+            return type(this_sel.start)
+        elif this_sel.stop != None:
+            return type(this_sel.stop)
+        elif this_sel.step != None:
+            return type(this_sel.step)
+        else:
+            raise TypeError("slice is all None?")
+    else:
+        return type(this_sel)
+
+# Flexibly subset from an xarray DataSet or DataArray. Selections can be individual values or slices.
+def xr_flexsel(xr_object, time=None, vegtype=None):
+    # SSR TODO: Consolidate repetitive code.
+    # SSR TODO: Optimize by starting selections with dimension that will result in the largest reduction of object size.
+
+    if time !=  None:
+        time_type = check_sel_type(time)
+        if time_type == int:
+            # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
+            if isinstance(time, int):
+                xr_object = xr_object.isel(time=slice(time,time+1))
+            else:
+                xr_object = xr_object.isel(time=time)
+            
+        elif time_type == str:
+            xr_object = xr_object.sel(time=time)
+        else:
+            raise TypeError(f"'time' argument must be type int, str, or slice of those (not {type(time)})")
+
+    if vegtype !=  None:
+        vegtype_type = check_sel_type(vegtype)
+        if vegtype_type == int:
+             # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
+            if isinstance(vegtype, int):
+                xr_object = xr_object.isel(vegtype=slice(vegtype,vegtype+1))
+            else:
+                xr_object = xr_object.isel(vegtype=vegtype)
+        elif vegtype_type == str:
+            xr_object = xr_object.sel(time=vegtype)
+        else:
+            raise TypeError(f"'vegtype' argument must be type int, str, or slice of those (not {type(vegtype)})")
+    return xr_object
+
+
 # List of PFTs used in CLM
 def define_pftlist():
     pftlist =  ["not_vegetated",
@@ -287,7 +337,7 @@ def get_vegtype_str_da(vegtype_str):
 
 
 # Set up function to drop unwanted vars in preprocessing of open_mfdataset(), making sure to include any unspecified variables that will be useful in gridding.
-def mfdataset_preproc(ds, vars_to_import):
+def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
 
     if vars_to_import != None:
         # Get list of dimensions present in variables in vars_to_import.
@@ -322,6 +372,8 @@ def mfdataset_preproc(ds, vars_to_import):
     # Rename "pft" dimension and variables to "patch", if needed
     if len(pft2patch_dict) > 0:
         ds = ds.rename(pft2patch_dict)
+    
+    # if vegtypes_to_import != None:
 
     # Finish import
     ds = xr.decode_cf(ds, decode_times = True)
@@ -329,10 +381,10 @@ def mfdataset_preproc(ds, vars_to_import):
 
 
 # Import a dataset that's spread over multiple files, only including specified variables. Concatenate by time.
-def import_ds(filelist, myVars=None):
+def import_ds(filelist, myVars=None, myVegtypes=None):
     # "preprocess" argument requires a function that only takes one variable (an xarray.Dataset object). Wrapping mfdataset_preproc() in this lambda function allows this. Could also just allow mfdataset_preproc() to access the myVars directly, but that's bad practice as it could lead to scoping issues.
     mfdataset_preproc_closure = \
-        lambda ds: mfdataset_preproc(ds, myVars)
+        lambda ds: mfdataset_preproc(ds, myVars, myVegtypes)
 
     # Import
     if isinstance(filelist, list):
@@ -422,33 +474,7 @@ def grid_one_variable(this_ds, thisVar, time=None):
     vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
 
     # Get this variable's values for selected time step(s), if provided
-    if time !=  None:
-        def check_slice_type(this_time):
-            if isinstance(this_time, slice):
-                if this_time == slice(0):
-                    raise ValueError("slice(0) will be empty")
-                elif this_time.start != None:
-                    return type(this_time.start)
-                elif this_time.stop != None:
-                    return type(this_time.stop)
-                elif this_time.step != None:
-                    return type(this_time.step)
-                else:
-                    raise TypeError("slice is all None?")
-            else:
-                return type(this_time)
-        time_type = check_slice_type(time)
-        if time_type == int:
-            # thisvar_da = thisvar_da.isel(time=time)
-            if isinstance(time, int):
-                thisvar_da = thisvar_da.isel(time=slice(time,time+1))
-            else:
-                thisvar_da = thisvar_da.isel(time=time)
-            # ^ Have to slice time like that instead of with index directly because otherwise .assign_coords() will throw an error
-        elif time_type == str:
-            thisvar_da = thisvar_da.sel(time=time)
-        else:
-            raise TypeError(f"'time' argument must be type int, str, or slice of those (not {type(time)})")
+    thisvar_da = xr_flexsel(thisvar_da, time=time)
 
     # Get dataset lon/lat grid
     lon = this_ds.lon
