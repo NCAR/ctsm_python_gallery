@@ -67,7 +67,7 @@ thisvar_da
 tmp_pyx = utils.grid_one_variable(this_ds, "pfts1d_itype_veg", vegtypes, time="2000-01-04")
 
 # Make map
-tmp_yx = tmp_pyx.isel(pft=0)
+tmp_yx = tmp_pyx.sel(pft="temperate_corn")
 if tmp_yx.shape[0] == 1:
     tmp_yx = tmp_yx.squeeze()
 else:
