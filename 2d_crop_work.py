@@ -1,18 +1,26 @@
+# %% User-defined variables
+
+# Your path to ctsm_py directory (i.e., where utils.py lives)
+sys.path.append("/Users/sam/Documents/git_repos/ctsm_python_gallery_myfork/ctsm_py/")
+
+# Directory where input file(s) can be found
+indir = "/Volumes/Reacher/CESM_runs/f10_f10_mg37/"
+
+# Either the name of a file within $indir, or a pattern that will return a list of files.
+pattern = "*h1.*-01-01-00000.nc"
+
 
 # %% Setup
 
 import numpy as np
 import xarray as xr
 from xarray.backends.api import load_dataset
-from ctsm_py import utils
 import matplotlib.pyplot as plt
 import warnings
 import glob
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-
 import sys
-sys.path.append("/Users/sam/Documents/git_repos/ctsm_python_gallery_myfork/ctsm_py/")
 import utils
 
 
@@ -32,8 +40,6 @@ myVars = ["CPHASE", \
           "TOTVEGC"]
 
 # Get list of all files in $indir matching $pattern
-indir = "/Volumes/Reacher/CESM_runs/f10_f10_mg37/"
-pattern = "*h1.*-01-01-00000.nc"
 filelist = glob.glob(indir + pattern)
 
 # Import
