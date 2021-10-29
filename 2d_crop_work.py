@@ -37,7 +37,6 @@ pattern = "*h1.*-01-01-00000.nc"
 filelist = glob.glob(indir + pattern)
 
 # Import
-this_ds = utils.import_ds_from_filelist(filelist, utils.pftlist, myVars=myVars)
 this_ds = utils.import_ds(filelist, utils.pftlist, myVars=myVars)
 
 
@@ -51,13 +50,12 @@ thisVar = "CPHASE"
 
 thisvar_da = utils.get_thisVar_da(thisVar, this_ds)
 thisvar_da = utils.trim_to_mgd_crop(thisvar_da, this_ds.patches1d_itype_veg_str)
-thisvar_da
 
 
 # %% Grid and make map, more efficiently, as function
 
-import importlib
-importlib.reload(utils)
+# import importlib
+# importlib.reload(utils)
 
 # Grid
 # tmp_vyx = utils.grid_one_variable(this_ds, "CPHASE", time=181)

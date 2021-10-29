@@ -266,19 +266,6 @@ def ivt_int_str(this_ds, this_pftlist):
     vegtype_int = this_ds.patches1d_itype_veg
     vegtype_int.values = vegtype_int.values.astype(int)
 
-    # Make sure no vegtype changes over time.
-    has_time = any([m == "time" for m in list(vegtype_int.dims)])
-    if has_time:
-        time_index = vegtype_int.dims.index("time")
-        uniques = np.unique(vegtype_int.values, \
-            axis=time_index)
-        max_num_ivt_per_patch = uniques.shape[time_index]
-        if max_num_ivt_per_patch != 1:
-            raise ValueError("Some veg type changes over time")
-        
-        # Take the first timestep.
-        vegtype_int = vegtype_int.isel(time=0)
-
     # Convert to strings.
     vegtype_str = list(np.array(this_pftlist)[vegtype_int.values])
 
@@ -348,7 +335,7 @@ def import_ds(filelist, this_pftlist, myVars=None):
     # Import
     if isinstance(filelist, list):
         this_ds = xr.open_mfdataset(filelist, \
-            concat_dim="time", 
+            data_vars="minimal", 
             preprocess=mfdataset_preproc_closure)
     elif isinstance(filelist, str):
         this_ds = xr.open_dataset(filelist)
@@ -455,14 +442,8 @@ def grid_one_variable(this_ds, thisVar, time=None):
             else:
                 thisvar_da = thisvar_da.isel(time=time)
             # ^ Have to slice time like that instead of with index directly because otherwise .assign_coords() will throw an error
-            ixy_da = ixy_da.isel(time=time)
-            jxy_da = jxy_da.isel(time=time)
-            vt_da = vt_da.isel(time=time).values
         elif time_type == str:
             thisvar_da = thisvar_da.sel(time=time)
-            ixy_da = ixy_da.sel(time=time)
-            jxy_da = jxy_da.sel(time=time)
-            vt_da = vt_da.sel(time=time).values
         else:
             raise TypeError(f"'time' argument must be type int, str, or slice of those (not {type(time)})")
 
