@@ -179,7 +179,7 @@ with get_thisVar_da(thisVar, this_ds, vegtype_str) as thisvar_da:
     plt.show()
 
 
-# %% Get sowing and harvest dates
+# %% Get simulated sowing and harvest dates
 
 # Get year and day number
 def get_jday(cftime_datetime_object):
@@ -243,3 +243,9 @@ for thisCrop in cphase_da.pft.values:
     this_dates = np.concatenate((this_sdates, this_hdates[:,1:]), axis=1)
     print(thisCrop)
     print(this_dates)
+
+
+# %% Get read-in sowing dates for this cell
+
+sdate_file = "/Volumes/Reacher/CESM_work/crop_dates/sdates_ggcmi_crop_calendar_phase3_v1.01.2000-2000.nc"
+
