@@ -39,12 +39,6 @@ filelist = glob.glob(indir + pattern)
 # Import
 this_ds = utils.import_ds_from_filelist(filelist, utils.pftlist, myVars=myVars)
 
-# Get dates in a format that matplotlib can use
-with warnings.catch_warnings():
-    # Ignore this warning in this with-block
-    warnings.filterwarnings("ignore", message="Converting a CFTimeIndex with dates from a non-standard calendar, 'noleap', to a pandas.DatetimeIndex, which uses dates from the standard calendar.  This may lead to subtle errors in operations that depend on the length of time between dates.")
-    datetime_vals = this_ds.indexes["time"].to_datetimeindex()
-
 
 # %% Read one variable from dataset. (Do nothing with it.)
 
@@ -79,3 +73,9 @@ ax = plt.axes(projection=ccrs.PlateCarree())
 plt.pcolor(tmp_yx.lon.values, tmp_yx.lat.values, tmp_yx, transform=ccrs.PlateCarree())
 ax.coastlines()
 plt.show()
+
+# # Get dates in a format that matplotlib can use
+# with warnings.catch_warnings():
+#     # Ignore this warning in this with-block
+#     warnings.filterwarnings("ignore", message="Converting a CFTimeIndex with dates from a non-standard calendar, 'noleap', to a pandas.DatetimeIndex, which uses dates from the standard calendar.  This may lead to subtle errors in operations that depend on the length of time between dates.")
+#     datetime_vals = this_ds.indexes["time"].to_datetimeindex()
