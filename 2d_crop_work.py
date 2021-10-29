@@ -14,7 +14,6 @@ pattern = "*h1.*-01-01-00000.nc"
 
 import numpy as np
 import xarray as xr
-from xarray.backends.api import load_dataset
 import matplotlib.pyplot as plt
 import warnings
 import glob
@@ -43,7 +42,7 @@ myVars = ["CPHASE", \
 filelist = glob.glob(indir + pattern)
 
 # Import
-this_ds = utils.import_ds(filelist, utils.pftlist, myVars=myVars)
+this_ds = utils.import_ds(filelist, myVars=myVars)
 
 
 # %% Read one variable from dataset. (Do nothing with it.)
