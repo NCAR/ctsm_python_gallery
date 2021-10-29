@@ -16,8 +16,10 @@ sys.path.append("/Users/sam/Documents/git_repos/ctsm_python_gallery_myfork/ctsm_
 import utils
 
 
+# %% Import dataset
 
-# Import dataset
+# import importlib
+# importlib.reload(utils)
 
 # Define list of variables to import
 myVars = ["CPHASE", \
@@ -35,7 +37,7 @@ pattern = "*h1.*-01-01-00000.nc"
 filelist = glob.glob(indir + pattern)
 
 # Import
-this_ds, vegtypes = utils.import_ds_from_filelist(filelist, utils.pftlist, myVars)
+this_ds = utils.import_ds_from_filelist(filelist, utils.pftlist, myVars=myVars)
 
 # Get dates in a format that matplotlib can use
 with warnings.catch_warnings():
@@ -43,31 +45,31 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore", message="Converting a CFTimeIndex with dates from a non-standard calendar, 'noleap', to a pandas.DatetimeIndex, which uses dates from the standard calendar.  This may lead to subtle errors in operations that depend on the length of time between dates.")
     datetime_vals = this_ds.indexes["time"].to_datetimeindex()
 
-# Get PFT list, integers (use only first timestep)
-
-
 
 # %% Read one variable from dataset. (Do nothing with it.)
+
+# import importlib
+# importlib.reload(utils)
 
 # Which variable?
 thisVar = "CPHASE"
 
-thisvar_da = utils.get_thisVar_da(thisVar, this_ds, vegtypes["str"])
-thisvar_da = utils.trim_to_mgd_crop(thisvar_da)
+thisvar_da = utils.get_thisVar_da(thisVar, this_ds)
+thisvar_da = utils.trim_to_mgd_crop(thisvar_da, this_ds.patches1d_itype_veg_str)
 thisvar_da
 
 
 # %% Grid and make map, more efficiently, as function
 
-# import importlib
-# importlib.reload(utils)
+import importlib
+importlib.reload(utils)
 
 # Grid
-# tmp_pyx = utils.grid_one_variable(this_ds, "pfts1d_itype_veg", vegtypes, time=3)
-tmp_pyx = utils.grid_one_variable(this_ds, "pfts1d_itype_veg", vegtypes, time="2000-01-04")
+# tmp_vyx = utils.grid_one_variable(this_ds, "CPHASE", time=181)
+tmp_vyx = utils.grid_one_variable(this_ds, "CPHASE", time="2000-07-01")
 
 # Make map
-tmp_yx = tmp_pyx.sel(pft="temperate_corn")
+tmp_yx = tmp_vyx.sel(ivt_str="temperate_corn")
 if tmp_yx.shape[0] == 1:
     tmp_yx = tmp_yx.squeeze()
 else:

@@ -263,7 +263,7 @@ pftlist =  ["not_vegetated",
 # Get PFT of each patch, in both integer and string forms
 def ivt_int_str(this_ds, this_pftlist):
     # First, get all the integer values; should be time*pft or pft*time. We will eventually just take the first timestep.
-    vegtype_int = this_ds.pfts1d_itype_veg
+    vegtype_int = this_ds.patches1d_itype_veg
     vegtype_int.values = vegtype_int.values.astype(int)
 
     # Make sure no vegtype changes over time.
@@ -284,6 +284,16 @@ def ivt_int_str(this_ds, this_pftlist):
     return {"int": vegtype_int, "str": vegtype_str, "all_str": this_pftlist}
 
 
+def get_vegtype_str_da(vegtype_str):
+    nvt = len(vegtype_str)
+    thisName = "vegtype_str"
+    vegtype_str_da = xr.DataArray(\
+        vegtype_str, 
+        coords={"ivt": np.arange(0,nvt)}, 
+        dims=["ivt"],
+        name = thisName)
+    return vegtype_str_da
+
 # Import a dataset that's spread over multiple files, only including specified variables. Concatenate by time.
 def import_ds_from_filelist(filelist, this_pftlist, myVars=None):
 
@@ -297,12 +307,17 @@ def import_ds_from_filelist(filelist, this_pftlist, myVars=None):
                 # list(set(x)) returns a list of the unique items in x
                 dimList = list(set(dimList + list(ds.variables[thisVar].dims)))
             
-            # Get any _1d variables that are associated with those dimensions. These will be useful in gridding.
+            # Get any _1d variables that are associated with those dimensions. These will be useful in gridding. Also, if any dimension is "pft", set up to rename it and all like-named variables to "patch"
             onedVars = []
+            pft2patch_dict = {}
             for thisDim in dimList:
                 pattern = re.compile(f"{thisDim}.*1d")
                 matches = [x for x in list(ds.keys()) if pattern.search(x) != None]
                 onedVars = list(set(onedVars + matches))
+                if thisDim == "pft":
+                    pft2patch_dict["pft"] = "patch"
+                    for m in matches:
+                        pft2patch_dict[m] = m.replace("pft","patch").replace("patchs","patches")
             
             # Add dimensions and _1d variables to vars_to_import
             vars_to_import = list(set(vars_to_import \
@@ -314,6 +329,10 @@ def import_ds_from_filelist(filelist, this_pftlist, myVars=None):
 
             # Drop them
             ds = ds.drop_vars(vars_to_drop)
+
+        # Rename "pft" dimension and variables to "patch", if needed
+        if len(pft2patch_dict) > 0:
+            ds = ds.rename(pft2patch_dict)
 
         # Finish import
         ds = xr.decode_cf(ds, decode_times = True)
@@ -328,14 +347,23 @@ def import_ds_from_filelist(filelist, this_pftlist, myVars=None):
         concat_dim="time", 
         preprocess=mfdataset_preproc_closure)
     
-    # Get vegetation type info
-    vegtypes = ivt_int_str(this_ds, this_pftlist)
+    # Add vegetation type info
+    ivt_int_str(this_ds, this_pftlist) # Includes check of whether vegtype changes over time anywhere
+    vegtype_da = get_vegtype_str_da(this_pftlist)
+    patches1d_itype_veg_str = vegtype_da.values[this_ds.isel(time=0).patches1d_itype_veg.values.astype(int)]
+    npatch = len(patches1d_itype_veg_str)
+    patches1d_itype_veg_str = xr.DataArray( \
+        patches1d_itype_veg_str,
+        coords={"patch": np.arange(0,npatch)}, 
+        dims=["patch"],
+        name = "patches1d_itype_veg_str")
+    this_ds = xr.merge([this_ds, vegtype_da, patches1d_itype_veg_str])
     
-    return this_ds, vegtypes
+    return this_ds
 
 
-# Return a DataArray, with defined coordinates (PFT as string), for a given variable in a dataset
-def get_thisVar_da(thisVar, this_ds, vegtypes_str):
+# Return a DataArray, with defined coordinates, for a given variable in a dataset
+def get_thisVar_da(thisVar, this_ds):
 
     # Make DataArray for this variable
     thisvar_da = np.array(this_ds.variables[thisVar])
@@ -346,12 +374,7 @@ def get_thisVar_da(thisVar, this_ds, vegtypes_str):
     # Define coordinates of this variable's DataArray
     dimsDict = dict()
     for thisDim in theseDims:
-        if thisDim == "pft":
-            dimsDict[thisDim] = vegtypes_str
-        elif any(np.array(list(this_ds.dims.keys())) == thisDim):
-                dimsDict[thisDim] = this_ds[thisDim]
-        else:
-            raise ValueError("Unknown dimension for coordinate assignment: " + thisDim)
+        dimsDict[thisDim] = this_ds[thisDim]
     thisvar_da = thisvar_da.assign_coords(dimsDict)
 
     return thisvar_da
@@ -369,34 +392,36 @@ def is_each_mgd_crop(this_pftlist):
     return [is_this_mgd_crop(x) for x in this_pftlist]
 
 
-# Given a DataArray, remove all PFTs except managed crops.
-def trim_to_mgd_crop(thisvar_da):
+# Given a DataArray, remove all patches except those planted with managed crops.
+def trim_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
 
-    # Handle input DataArray without pft dimension
-    if not any(np.array(list(thisvar_da.dims)) == "pft"):
-        print("Input DataArray has no pft dimension and therefore trim_to_mgd_crop() has no effect.")
+    # Handle input DataArray without patch dimension
+    if not any(np.array(list(thisvar_da.dims)) == "patch"):
+        print("Input DataArray has no patch dimension and therefore trim_to_mgd_crop() has no effect.")
         return thisvar_da
     
-    # Throw error if pft dimension isn't strings
-    if not isinstance(thisvar_da.pft.values[0], str):
-        raise TypeError("Input DataArray's pft dimension is not in string form, and therefore trim_to_mgd_crop() cannot work.")
+    # Throw error if patches1d_itype_veg_str isn't strings
+    if isinstance(patches1d_itype_veg_str, xr.DataArray):
+        patches1d_itype_veg_str = patches1d_itype_veg_str.values
+    if not isinstance(patches1d_itype_veg_str[0], str):
+        raise TypeError("Input patches1d_itype_veg_str is not in string form, and therefore trim_to_mgd_crop() cannot work.")
     
-    # Get boolean list of whether each PFT is a managed crop
-    is_crop = is_each_mgd_crop(thisvar_da.pft.values)
+    # Get boolean list of whether each patch is planted with a managed crop
+    is_crop = is_each_mgd_crop(patches1d_itype_veg_str)
 
     # Warn if no managed crops were found, but still return the empty result
     if np.all(np.bitwise_not(is_crop)):
         print("No managed crops found! Returning empty DataArray.")
-    return thisvar_da.isel(pft = [i for i, x in enumerate(is_crop) if x])
+    return thisvar_da.isel(patch = [i for i, x in enumerate(is_crop) if x])
 
 
 # Make a geographically gridded DataArray (with PFT dimension) of one variable within a DataSet. Optionally subset by time index (integer) or slice.
-def grid_one_variable(this_ds, thisVar, vegtypes, time=None):
+def grid_one_variable(this_ds, thisVar, time=None):
 
-    thisvar_da = get_thisVar_da(thisVar, this_ds, vegtypes["str"])
-    ixy_da = get_thisVar_da("pfts1d_ixy", this_ds, vegtypes["str"])
-    jxy_da = get_thisVar_da("pfts1d_jxy", this_ds, vegtypes["str"])
-    vt_da = get_thisVar_da("pfts1d_itype_veg", this_ds, vegtypes["str"])
+    thisvar_da = get_thisVar_da(thisVar, this_ds)
+    ixy_da = get_thisVar_da("patches1d_ixy", this_ds)
+    jxy_da = get_thisVar_da("patches1d_jxy", this_ds)
+    vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
 
     # Get this variable's values for selected time step(s), if provided
     if time !=  None:
@@ -437,12 +462,12 @@ def grid_one_variable(this_ds, thisVar, vegtypes, time=None):
     lon = this_ds.lon
     lat = this_ds.lat
 
-    # Set up empty array: time * PFT * lat * lon
+    # Set up empty array: time * vegtype * lat * lon
     ntime = len(thisvar_da.time)
-    npft = np.max(vegtypes["int"].values) + 1
+    nvt = np.max(this_ds.patches1d_itype_veg.values) + 1
     nlat = len(lat.values)
     nlon = len(lon.values)
-    thisvar_tpyx = np.empty([ntime, npft, nlat, nlon])
+    thisvar_tpyx = np.empty([ntime, nvt, nlat, nlon])
 
     # Fill with this variable
     thisvar_tpyx[:,
@@ -451,10 +476,10 @@ def grid_one_variable(this_ds, thisVar, vegtypes, time=None):
         ixy_da.values.astype(int) - 1] = thisvar_da.values
 
     # Assign coordinates and name
-    thisvar_tpyx = xr.DataArray(thisvar_tpyx, dims=("time","pft","lat","lon"))
+    thisvar_tpyx = xr.DataArray(thisvar_tpyx, dims=("time","ivt_str","lat","lon"))
     thisvar_tpyx = thisvar_tpyx.assign_coords( \
         time = thisvar_da.time,
-        pft  = vegtypes["all_str"],
+        ivt_str  = this_ds.vegtype_str.values,
         lat  = lat.values,
         lon  = lon.values)
     thisvar_tpyx.name = thisVar
