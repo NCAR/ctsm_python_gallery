@@ -38,6 +38,7 @@ filelist = glob.glob(indir + pattern)
 
 # Import
 this_ds = utils.import_ds_from_filelist(filelist, utils.pftlist, myVars=myVars)
+this_ds = utils.import_ds(filelist, utils.pftlist, myVars=myVars)
 
 
 # %% Read one variable from dataset. (Do nothing with it.)

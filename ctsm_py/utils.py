@@ -267,15 +267,17 @@ def ivt_int_str(this_ds, this_pftlist):
     vegtype_int.values = vegtype_int.values.astype(int)
 
     # Make sure no vegtype changes over time.
-    time_index = vegtype_int.dims.index("time")
-    uniques = np.unique(vegtype_int.values, \
-        axis=time_index)
-    max_num_ivt_per_patch = uniques.shape[time_index]
-    if max_num_ivt_per_patch != 1:
-        raise ValueError("Some veg type changes over time")
-    
-    # Take the first timestep.
-    vegtype_int = vegtype_int.isel(time=0)
+    has_time = any([m == "time" for m in list(vegtype_int.dims)])
+    if has_time:
+        time_index = vegtype_int.dims.index("time")
+        uniques = np.unique(vegtype_int.values, \
+            axis=time_index)
+        max_num_ivt_per_patch = uniques.shape[time_index]
+        if max_num_ivt_per_patch != 1:
+            raise ValueError("Some veg type changes over time")
+        
+        # Take the first timestep.
+        vegtype_int = vegtype_int.isel(time=0)
 
     # Convert to strings.
     vegtype_str = list(np.array(this_pftlist)[vegtype_int.values])
@@ -294,58 +296,64 @@ def get_vegtype_str_da(vegtype_str):
         name = thisName)
     return vegtype_str_da
 
+
+# Set up function to drop unwanted vars in preprocessing of open_mfdataset(), making sure to include any unspecified variables that will be useful in gridding.
+def mfdataset_preproc(ds, vars_to_import):
+
+    if vars_to_import != None:
+        # Get list of dimensions present in variables in vars_to_import.
+        dimList = []
+        for thisVar in vars_to_import:
+            # list(set(x)) returns a list of the unique items in x
+            dimList = list(set(dimList + list(ds.variables[thisVar].dims)))
+        
+        # Get any _1d variables that are associated with those dimensions. These will be useful in gridding. Also, if any dimension is "pft", set up to rename it and all like-named variables to "patch"
+        onedVars = []
+        pft2patch_dict = {}
+        for thisDim in dimList:
+            pattern = re.compile(f"{thisDim}.*1d")
+            matches = [x for x in list(ds.keys()) if pattern.search(x) != None]
+            onedVars = list(set(onedVars + matches))
+            if thisDim == "pft":
+                pft2patch_dict["pft"] = "patch"
+                for m in matches:
+                    pft2patch_dict[m] = m.replace("pft","patch").replace("patchs","patches")
+        
+        # Add dimensions and _1d variables to vars_to_import
+        vars_to_import = list(set(vars_to_import \
+            + list(ds.dims) + onedVars))
+
+        # Get list of variables to drop
+        varlist = list(ds.variables)
+        vars_to_drop = list(np.setdiff1d(varlist, vars_to_import))
+
+        # Drop them
+        ds = ds.drop_vars(vars_to_drop)
+
+    # Rename "pft" dimension and variables to "patch", if needed
+    if len(pft2patch_dict) > 0:
+        ds = ds.rename(pft2patch_dict)
+
+    # Finish import
+    ds = xr.decode_cf(ds, decode_times = True)
+    return ds
+
+
 # Import a dataset that's spread over multiple files, only including specified variables. Concatenate by time.
-def import_ds_from_filelist(filelist, this_pftlist, myVars=None):
-
-    # Set up function to drop unwanted vars in preprocessing of open_mfdataset(), making sure to include any unspecified variables that will be useful in gridding.
-    def mfdataset_preproc(ds, vars_to_import):
-
-        if vars_to_import != None:
-            # Get list of dimensions present in variables in vars_to_import.
-            dimList = []
-            for thisVar in vars_to_import:
-                # list(set(x)) returns a list of the unique items in x
-                dimList = list(set(dimList + list(ds.variables[thisVar].dims)))
-            
-            # Get any _1d variables that are associated with those dimensions. These will be useful in gridding. Also, if any dimension is "pft", set up to rename it and all like-named variables to "patch"
-            onedVars = []
-            pft2patch_dict = {}
-            for thisDim in dimList:
-                pattern = re.compile(f"{thisDim}.*1d")
-                matches = [x for x in list(ds.keys()) if pattern.search(x) != None]
-                onedVars = list(set(onedVars + matches))
-                if thisDim == "pft":
-                    pft2patch_dict["pft"] = "patch"
-                    for m in matches:
-                        pft2patch_dict[m] = m.replace("pft","patch").replace("patchs","patches")
-            
-            # Add dimensions and _1d variables to vars_to_import
-            vars_to_import = list(set(vars_to_import \
-                + list(ds.dims) + onedVars))
-
-            # Get list of variables to drop
-            varlist = list(ds.variables)
-            vars_to_drop = list(np.setdiff1d(varlist, vars_to_import))
-
-            # Drop them
-            ds = ds.drop_vars(vars_to_drop)
-
-        # Rename "pft" dimension and variables to "patch", if needed
-        if len(pft2patch_dict) > 0:
-            ds = ds.rename(pft2patch_dict)
-
-        # Finish import
-        ds = xr.decode_cf(ds, decode_times = True)
-        return ds
-
-    # xr.open_mfdataset()'s "preprocess" argument requires a function that only takes one variable (an xarray.Dataset object). Wrapping mfdataset_preproc() in this lambda function allows this. Could also just allow mfdataset_preproc() to access the myVars directly, but that's bad practice as it could lead to scoping issues.
+def import_ds(filelist, this_pftlist, myVars=None):
+    # "preprocess" argument requires a function that only takes one variable (an xarray.Dataset object). Wrapping mfdataset_preproc() in this lambda function allows this. Could also just allow mfdataset_preproc() to access the myVars directly, but that's bad practice as it could lead to scoping issues.
     mfdataset_preproc_closure = \
         lambda ds: mfdataset_preproc(ds, myVars)
 
     # Import
-    this_ds = xr.open_mfdataset(filelist, \
-        concat_dim="time", 
-        preprocess=mfdataset_preproc_closure)
+    if isinstance(filelist, list):
+        this_ds = xr.open_mfdataset(filelist, \
+            concat_dim="time", 
+            preprocess=mfdataset_preproc_closure)
+    elif isinstance(filelist, str):
+        this_ds = xr.open_dataset(filelist)
+        this_ds = mfdataset_preproc(this_ds, myVars)
+        this_ds = this_ds.compute()
     
     # Add vegetation type info
     ivt_int_str(this_ds, this_pftlist) # Includes check of whether vegtype changes over time anywhere
