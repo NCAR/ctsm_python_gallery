@@ -406,7 +406,7 @@ def grid_one_timestep(this_ds, thisVar, time_index, vegtypes):
     # Get PFT indices for this time step
     vt_da = get_thisVar_da("pfts1d_itype_veg", this_ds, vegtypes["str"])
     vt = vt_da[dict(time=time_index)].values
-    
+
     # Get dataset lon/lat grid
     lon = this_ds.lon
     lat = this_ds.lat
@@ -425,14 +425,10 @@ def grid_one_timestep(this_ds, thisVar, time_index, vegtypes):
     # Assign coordinates and name
     thisvar_pyx = xr.DataArray(thisvar_pyx, dims=("pft","lat","lon"))
     thisvar_pyx = thisvar_pyx.assign_coords( \
-        pft=vegtypes["all_str"],
-        lat=lat.values,
-        lon=lon.values)
+        pft  = vegtypes["all_str"],
+        lat  = lat.values,
+        lon  = lon.values)
     thisvar_pyx.name = thisVar
 
-    # Restrict to managed crops
-    thisvar_pyx = thisvar_pyx[is_each_mgd_crop(thisvar_pyx.pft.values)]
-
     return thisvar_pyx
-
 
