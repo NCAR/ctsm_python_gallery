@@ -390,45 +390,74 @@ def trim_to_mgd_crop(thisvar_da):
     return thisvar_da.isel(pft = [i for i, x in enumerate(is_crop) if x])
 
 
-# Make a geographically gridded DataArray (with PFT dimension) of one timestep in a given variable within a DataSet.
-def grid_one_timestep(this_ds, thisVar, time_index, vegtypes):
+# Make a geographically gridded DataArray (with PFT dimension) of one variable within a DataSet. Optionally subset by time index (integer) or slice.
+def grid_one_variable(this_ds, thisVar, vegtypes, time=None):
 
-    # Get this variable's values for this time step
     thisvar_da = get_thisVar_da(thisVar, this_ds, vegtypes["str"])
-    thisvar_da_1time = thisvar_da[dict(time=time_index)]
-
-    # Get gridcell indices for this time step
     ixy_da = get_thisVar_da("pfts1d_ixy", this_ds, vegtypes["str"])
     jxy_da = get_thisVar_da("pfts1d_jxy", this_ds, vegtypes["str"])
-    ixy = ixy_da[dict(time=time_index)]
-    jxy = jxy_da[dict(time=time_index)]
-
-    # Get PFT indices for this time step
     vt_da = get_thisVar_da("pfts1d_itype_veg", this_ds, vegtypes["str"])
-    vt = vt_da[dict(time=time_index)].values
+
+    # Get this variable's values for selected time step(s), if provided
+    if time !=  None:
+        def check_slice_type(this_time):
+            if isinstance(this_time, slice):
+                if this_time == slice(0):
+                    raise ValueError("slice(0) will be empty")
+                elif this_time.start != None:
+                    return type(this_time.start)
+                elif this_time.stop != None:
+                    return type(this_time.stop)
+                elif this_time.step != None:
+                    return type(this_time.step)
+                else:
+                    raise TypeError("slice is all None?")
+            else:
+                return type(this_time)
+        time_type = check_slice_type(time)
+        if time_type == int:
+            # thisvar_da = thisvar_da.isel(time=time)
+            if isinstance(time, int):
+                thisvar_da = thisvar_da.isel(time=slice(time,time+1))
+            else:
+                thisvar_da = thisvar_da.isel(time=time)
+            # ^ Have to slice time like that instead of with index directly because otherwise .assign_coords() will throw an error
+            ixy_da = ixy_da.isel(time=time)
+            jxy_da = jxy_da.isel(time=time)
+            vt_da = vt_da.isel(time=time).values
+        elif time_type == str:
+            thisvar_da = thisvar_da.sel(time=time)
+            ixy_da = ixy_da.sel(time=time)
+            jxy_da = jxy_da.sel(time=time)
+            vt_da = vt_da.sel(time=time).values
+        else:
+            raise TypeError(f"'time' argument must be type int, str, or slice of those (not {type(time)})")
 
     # Get dataset lon/lat grid
     lon = this_ds.lon
     lat = this_ds.lat
 
-    # Set up empty array: PFT * lat * lon
+    # Set up empty array: time * PFT * lat * lon
+    ntime = len(thisvar_da.time)
     npft = np.max(vegtypes["int"].values) + 1
     nlat = len(lat.values)
     nlon = len(lon.values)
-    thisvar_pyx = np.empty([npft, nlat, nlon])
+    thisvar_tpyx = np.empty([ntime, npft, nlat, nlon])
 
     # Fill with this variable
-    thisvar_pyx[vt, 
-        jxy.values.astype(int) - 1, 
-        ixy.values.astype(int) - 1] = thisvar_da_1time.values
+    thisvar_tpyx[:,
+        vt_da, 
+        jxy_da.values.astype(int) - 1, 
+        ixy_da.values.astype(int) - 1] = thisvar_da.values
 
     # Assign coordinates and name
-    thisvar_pyx = xr.DataArray(thisvar_pyx, dims=("pft","lat","lon"))
-    thisvar_pyx = thisvar_pyx.assign_coords( \
+    thisvar_tpyx = xr.DataArray(thisvar_tpyx, dims=("time","pft","lat","lon"))
+    thisvar_tpyx = thisvar_tpyx.assign_coords( \
+        time = thisvar_da.time,
         pft  = vegtypes["all_str"],
         lat  = lat.values,
         lon  = lon.values)
-    thisvar_pyx.name = thisVar
+    thisvar_tpyx.name = thisVar
 
-    return thisvar_pyx
+    return thisvar_tpyx
 

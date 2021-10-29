@@ -13,7 +13,7 @@ import cartopy.feature as cfeature
 
 import sys
 sys.path.append("/Users/sam/Documents/git_repos/ctsm_python_gallery_myfork/ctsm_py/")
-from utils import import_ds_from_filelist, get_thisVar_da, trim_to_mgd_crop, grid_one_timestep, pftlist, cyclic_dataarray
+import utils
 
 
 
@@ -35,7 +35,7 @@ pattern = "*h1.*-01-01-00000.nc"
 filelist = glob.glob(indir + pattern)
 
 # Import
-this_ds, vegtypes = import_ds_from_filelist(filelist, pftlist, myVars)
+this_ds, vegtypes = utils.import_ds_from_filelist(filelist, utils.pftlist, myVars)
 
 # Get dates in a format that matplotlib can use
 with warnings.catch_warnings():
@@ -52,19 +52,27 @@ with warnings.catch_warnings():
 # Which variable?
 thisVar = "CPHASE"
 
-thisvar_da = get_thisVar_da(thisVar, this_ds, vegtypes["str"])
-thisvar_da = trim_to_mgd_crop(thisvar_da)
+thisvar_da = utils.get_thisVar_da(thisVar, this_ds, vegtypes["str"])
+thisvar_da = utils.trim_to_mgd_crop(thisvar_da)
 thisvar_da
 
 
 # %% Grid and make map, more efficiently, as function
 
+# import importlib
+# importlib.reload(utils)
+
 # Grid
-tmp_pyx = grid_one_timestep(this_ds, "pfts1d_itype_veg", 0, vegtypes)
+# tmp_pyx = utils.grid_one_variable(this_ds, "pfts1d_itype_veg", vegtypes, time=3)
+tmp_pyx = utils.grid_one_variable(this_ds, "pfts1d_itype_veg", vegtypes, time="2000-01-04")
 
 # Make map
 tmp_yx = tmp_pyx.isel(pft=0)
-tmp_yx = cyclic_dataarray(tmp_yx)
+if tmp_yx.shape[0] == 1:
+    tmp_yx = tmp_yx.squeeze()
+else:
+    raise ValueError("You must select one time step to plot")
+tmp_yx = utils.cyclic_dataarray(tmp_yx)
 ax = plt.axes(projection=ccrs.PlateCarree())
 plt.pcolor(tmp_yx.lon.values, tmp_yx.lat.values, tmp_yx, transform=ccrs.PlateCarree())
 ax.coastlines()
