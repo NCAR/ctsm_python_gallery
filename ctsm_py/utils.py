@@ -194,6 +194,25 @@ def check_sel_type(this_sel):
     else:
         return type(this_sel)
 
+# Is this PFT a managed crop?
+# SSR TODO: Require that input be a single string.
+def is_this_vegtype(this_pft, this_list, method):    
+    if method == "ok_contains":
+        return any(n in this_pft for n in this_list)
+    elif method == "notok_contains":
+        return not any(n in this_pft for n in this_list)
+    elif method == "ok_exact":
+        return any(n == this_pft for n in this_list)
+    elif method == "notok_exact":
+        return not any(n == this_pft for n in this_list)
+    else:
+        raise ValueError(f"Unknown method: '{method}'")
+
+
+# Get boolean list of whether each PFT in list is a managed crop
+def is_each_vegtype(this_pftlist, this_filter, this_method):
+    return [is_this_vegtype(x, this_filter, this_method) for x in this_pftlist]
+
 
 # Flexibly subset from an xarray DataSet or DataArray. Selections can be individual values or slices.
 def xr_flexsel(xr_object, time=None, vegtype=None):
@@ -429,26 +448,6 @@ def get_thisVar_da(thisVar, this_ds):
     thisvar_da = thisvar_da.assign_coords(dimsDict)
 
     return thisvar_da
-
-
-# Is this PFT a managed crop?
-# SSR TODO: Require that input be a single string.
-def is_this_vegtype(this_pft, this_list, method):    
-    if method == "ok_contains":
-        return any(n in this_pft for n in this_list)
-    elif method == "notok_contains":
-        return not any(n in this_pft for n in this_list)
-    elif method == "ok_exact":
-        return any(n == this_pft for n in this_list)
-    elif method == "notok_exact":
-        return not any(n == this_pft for n in this_list)
-    else:
-        raise ValueError(f"Unknown method: '{method}'")
-
-
-# Get boolean list of whether each PFT in list is a managed crop
-def is_each_vegtype(this_pftlist, this_filter, this_method):
-    return [is_this_vegtype(x, this_filter, this_method) for x in this_pftlist]
 
 
 # Given a DataArray, remove all patches except those planted with managed crops.
