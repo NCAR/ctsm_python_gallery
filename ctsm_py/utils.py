@@ -194,57 +194,6 @@ def check_sel_type(this_sel):
     else:
         return type(this_sel)
 
-# Is this PFT a managed crop?
-# SSR TODO: Require that input be a single string.
-def is_this_vegtype(this_pft, this_list, method):    
-    if method == "ok_contains":
-        return any(n in this_pft for n in this_list)
-    elif method == "notok_contains":
-        return not any(n in this_pft for n in this_list)
-    elif method == "ok_exact":
-        return any(n == this_pft for n in this_list)
-    elif method == "notok_exact":
-        return not any(n == this_pft for n in this_list)
-    else:
-        raise ValueError(f"Unknown method: '{method}'")
-
-
-# Get boolean list of whether each PFT in list is a managed crop
-def is_each_vegtype(this_pftlist, this_filter, this_method):
-    return [is_this_vegtype(x, this_filter, this_method) for x in this_pftlist]
-
-
-# Flexibly subset from an xarray DataSet or DataArray. Selections can be individual values or slices.
-def xr_flexsel(xr_object, time=None, vegtype=None):
-    # SSR TODO: Consolidate repetitive code.
-    # SSR TODO: Optimize by starting selections with dimension that will result in the largest reduction of object size.
-
-    if time !=  None:
-        time_type = check_sel_type(time)
-        if time_type == int:
-            # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
-            if isinstance(time, int):
-                xr_object = xr_object.isel(time=slice(time,time+1))
-            else:
-                xr_object = xr_object.isel(time=time)
-        elif time_type == str:
-            xr_object = xr_object.sel(time=time)
-        else:
-            raise TypeError(f"'time' argument must be type int, str, or slice of those (not {type(time)})")
-
-    if vegtype !=  None:
-        if not isinstance(vegtype, list):
-            vegtype = [vegtype]
-        if isinstance(vegtype[0], str):
-            ind_dict = dict((k,i) for i,k in enumerate(xr_object.vegtype_str.values))
-            inter = set(ind_dict).intersection(vegtype)
-            indices = [ ind_dict[x] for x in inter ]
-            vegtype = indices
-        is_vegtype = is_each_vegtype(xr_object.patches1d_itype_veg.values, indices, "ok_exact")
-        xr_object = xr_object.sel(patch=[i for i, x in enumerate(is_vegtype) if x])
-    
-    return xr_object
-
 
 # List of PFTs used in CLM
 def define_pftlist():
@@ -328,6 +277,87 @@ def define_pftlist():
         "tropical_soybean",
         "irrigated_tropical_soybean"]
     return pftlist
+
+
+
+# Is this PFT a managed crop?
+# SSR TODO: Require that input be a single string.
+def is_this_vegtype(this_pft, this_list, method):    
+    if method == "ok_contains":
+        return any(n in this_pft for n in this_list)
+    elif method == "notok_contains":
+        return not any(n in this_pft for n in this_list)
+    elif method == "ok_exact":
+        return any(n == this_pft for n in this_list)
+    elif method == "notok_exact":
+        return not any(n == this_pft for n in this_list)
+    else:
+        raise ValueError(f"Unknown method: '{method}'")
+
+
+# Get boolean list of whether each PFT in list is a managed crop
+def is_each_vegtype(this_pftlist, this_filter, this_method):
+    return [is_this_vegtype(x, this_filter, this_method) for x in this_pftlist]
+
+
+# Convert list of vegtypes to integer index equivalents
+def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
+    if isinstance(vegtype_mainlist, xr.Dataset):
+        vegtype_mainlist = vegtype_mainlist.vegtype_str.values
+    elif isinstance(vegtype_mainlist, xr.DataArray):
+        vegtype_mainlist = vegtype_mainlist.values
+    elif vegtype_mainlist == None:
+        vegtype_mainlist = define_pftlist()
+    if not isinstance(vegtype_mainlist, list) and isinstance(vegtype_mainlist[0], str):
+        if isinstance(vegtype_mainlist, list):
+            raise TypeError(f"Not sure how to handle vegtype_mainlist as list of {type(vegtype_mainlist[0])}")
+        else:
+            raise TypeError(f"Not sure how to handle vegtype_mainlist as type {type(vegtype_mainlist[0])}")
+    ind_dict = dict((k,i) for i,k in enumerate(vegtype_mainlist))
+    inter = set(ind_dict).intersection(vegtype_str)
+    indices = [ ind_dict[x] for x in inter ]
+    return indices
+
+# Flexibly subset from an xarray DataSet or DataArray. Selections can be individual values or slices.
+def xr_flexsel(xr_object, time=None, vegtype=None):
+    # SSR TODO: Consolidate repetitive code.
+    # SSR TODO: Optimize by starting selections with dimension that will result in the largest reduction of object size.
+
+    if time !=  None:
+        time_type = check_sel_type(time)
+        if time_type == int:
+            # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
+            if isinstance(time, int):
+                xr_object = xr_object.isel(time=slice(time,time+1))
+            else:
+                xr_object = xr_object.isel(time=time)
+        elif time_type == str:
+            xr_object = xr_object.sel(time=time)
+        else:
+            raise TypeError(f"'time' argument must be type int, str, or slice of those (not {type(time)})")
+
+    if vegtype !=  None:
+
+        # Convert to list, if needed
+        if not isinstance(vegtype, list):
+            vegtype = [vegtype]
+        
+        # Convert to indices, if needed
+        if isinstance(vegtype[0], str):
+            vegtype = vegtype_str2int(vegtype)
+        
+        # Get list of boolean(s)
+        if isinstance(vegtype[0], int):
+            is_vegtype = is_each_vegtype(xr_object.patches1d_itype_veg.values, vegtype, "ok_exact")
+        elif isinstance(vegtype[0], bool):
+            if len(vegtype) != len(xr_object.patch):
+                raise ValueError(f"If providing boolean 'vegtype' argument to xr_flexsel(), it must be the same length as xr_object.patch ({len(vegtype)} vs. {len(xr_object.patch)})")
+            is_vegtype = vegtype
+        else:
+            raise TypeError(f"Not sure how to handle 'vegtype' of type {type(vegtype)}")
+        xr_object = xr_object.sel(patch=[i for i, x in enumerate(is_vegtype) if x])
+    
+    return xr_object
 
 
 # Get PFT of each patch, in both integer and string forms
@@ -415,6 +445,14 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
 
 # Import a dataset that's spread over multiple files, only including specified variables. Concatenate by time.
 def import_ds(filelist, myVars=None, myVegtypes=None):
+
+    # Convert myVegtypes here, if needed, to avoid repeating the process each time you read a file in xr.open_mfdataset().
+    if myVegtypes != None:
+        if not isinstance(myVegtypes, list):
+            myVegtypes = [myVegtypes]
+        if isinstance(myVegtypes[0], str):
+            myVegtypes = vegtype_str2int(myVegtypes)
+
     # "preprocess" argument requires a function that only takes one variable (an xarray.Dataset object). Wrapping mfdataset_preproc() in this lambda function allows this. Could also just allow mfdataset_preproc() to access the myVars directly, but that's bad practice as it could lead to scoping issues.
     mfdataset_preproc_closure = \
         lambda ds: mfdataset_preproc(ds, myVars, myVegtypes)
