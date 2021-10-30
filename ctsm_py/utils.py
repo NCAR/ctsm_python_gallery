@@ -227,30 +227,21 @@ def xr_flexsel(xr_object, time=None, vegtype=None):
                 xr_object = xr_object.isel(time=slice(time,time+1))
             else:
                 xr_object = xr_object.isel(time=time)
-            
         elif time_type == str:
             xr_object = xr_object.sel(time=time)
         else:
             raise TypeError(f"'time' argument must be type int, str, or slice of those (not {type(time)})")
 
     if vegtype !=  None:
-        vegtype_type = check_sel_type(vegtype)
-        if vegtype_type == int:
-            raise TypeError("Add handling of vegtype_type == int")
-             # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
-            if isinstance(vegtype, int):
-                xr_object = xr_object.isel(patches1d_itype_veg=slice(vegtype,vegtype+1))
-            else:
-                xr_object = xr_object.isel(patches1d_itype_veg=vegtype)
-        elif vegtype_type == str or vegtype_type == list:
-            # SSR TODO: Test whether it's faster to convert vegtype list to int and compare that way
-            if vegtype_type == str:
-                vegtype = [vegtype]
-            is_vegtype = is_each_vegtype(xr_object.patches1d_itype_veg_str, \
-                vegtype, "ok_exact")
-            xr_object = xr_object.sel(patch=[i for i, x in enumerate(is_vegtype) if x])
-        else:
-            raise TypeError(f"'vegtype' argument must be type int, str, or slice of those, or list of str (not {type(vegtype)})")
+        if not isinstance(vegtype, list):
+            vegtype = [vegtype]
+        if isinstance(vegtype[0], str):
+            ind_dict = dict((k,i) for i,k in enumerate(xr_object.vegtype_str.values))
+            inter = set(ind_dict).intersection(vegtype)
+            indices = [ ind_dict[x] for x in inter ]
+            vegtype = indices
+        is_vegtype = is_each_vegtype(xr_object.patches1d_itype_veg.values, indices, "ok_exact")
+        xr_object = xr_object.sel(patch=[i for i, x in enumerate(is_vegtype) if x])
     
     return xr_object
 
