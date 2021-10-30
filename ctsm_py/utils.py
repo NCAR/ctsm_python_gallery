@@ -279,7 +279,6 @@ def define_pftlist():
     return pftlist
 
 
-
 # Is this PFT a managed crop?
 # SSR TODO: Require that input be a single string.
 def is_this_vegtype(this_pft, this_list, method):    
@@ -298,6 +297,14 @@ def is_this_vegtype(this_pft, this_list, method):
 # Get boolean list of whether each PFT in list is a managed crop
 def is_each_vegtype(this_pftlist, this_filter, this_method):
     return [is_this_vegtype(x, this_filter, this_method) for x in this_pftlist]
+
+
+# List of managed crops in CLM
+def define_mgdcrop_list():
+    notcrop_list = ["tree", "grass", "shrub", "unmanaged", "not_vegetated"]
+    defined_pftlist = define_pftlist()
+    is_crop = is_each_vegtype(defined_pftlist, notcrop_list, "notok_contains")
+    return [defined_pftlist[i] for i, x in enumerate(is_crop) if x]
 
 
 # Convert list of vegtypes to integer index equivalents
@@ -489,7 +496,7 @@ def get_thisVar_da(thisVar, this_ds):
 
 
 # Given a DataArray, remove all patches except those planted with managed crops.
-def trim_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
+def trim_da_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
 
     # Handle input DataArray without patch dimension
     if not any(np.array(list(thisvar_da.dims)) == "patch"):

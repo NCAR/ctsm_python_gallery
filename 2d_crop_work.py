@@ -42,7 +42,8 @@ myVars = ["CPHASE", \
 filelist = glob.glob(indir + pattern)
 
 # Import
-this_ds = utils.import_ds(filelist, myVars=myVars)
+# this_ds = utils.import_ds(filelist, myVars=myVars)
+this_ds = utils.import_ds(filelist, myVars=myVars, myVegtypes=utils.define_mgdcrop_list())
 
 
 # %% Read one variable from dataset. (Do nothing with it.)
