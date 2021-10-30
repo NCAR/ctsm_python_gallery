@@ -325,10 +325,9 @@ def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
     indices = [ ind_dict[x] for x in inter ]
     return indices
 
-# Flexibly subset from an xarray DataSet or DataArray. Selections can be individual values or slices.
+# Flexibly subset from an xarray Dataset or DataArray. Selections can be individual values or slices.
 def xr_flexsel(xr_object, time=None, vegtype=None):
-    # SSR TODO: Consolidate repetitive code.
-    # SSR TODO: Optimize by starting selections with dimension that will result in the largest reduction of object size.
+    # SSR TODO: Optimize by starting selections with dimension that will result in the largest reduction of object size. Is there a way to do this without repeating a bunch of code, that DOESN'T involve writing another function (and therefore making another in-memory copy of the object)? Although I guess that's not an issue for Datasets that haven't yet been loaded into memory. But then, in that case, this optimization is unnecessary!
 
     if time !=  None:
         time_type = check_sel_type(time)
