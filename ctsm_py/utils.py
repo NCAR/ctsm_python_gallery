@@ -178,22 +178,6 @@ def cyclic_dataset(ds, coord='lon'):
     return new_ds
 '''
 
-# Check the type of a selection
-def check_sel_type(this_sel):
-    if isinstance(this_sel, slice):
-        if this_sel == slice(0):
-            raise ValueError("slice(0) will be empty")
-        elif this_sel.start != None:
-            return type(this_sel.start)
-        elif this_sel.stop != None:
-            return type(this_sel.stop)
-        elif this_sel.step != None:
-            return type(this_sel.step)
-        else:
-            raise TypeError("slice is all None?")
-    else:
-        return type(this_sel)
-
 
 # List of PFTs used in CLM
 def define_pftlist():
@@ -324,6 +308,22 @@ def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
     inter = set(ind_dict).intersection(vegtype_str)
     indices = [ ind_dict[x] for x in inter ]
     return indices
+
+# Check the type of a selection. Used in xr_flexsel(). This function ended up only being used once there, but keep it separate anyway to avoid having to re-do it in the future.
+def check_sel_type(this_sel):
+    if isinstance(this_sel, slice):
+        if this_sel == slice(0):
+            raise ValueError("slice(0) will be empty")
+        elif this_sel.start != None:
+            return type(this_sel.start)
+        elif this_sel.stop != None:
+            return type(this_sel.stop)
+        elif this_sel.step != None:
+            return type(this_sel.step)
+        else:
+            raise TypeError("slice is all None?")
+    else:
+        return type(this_sel)
 
 # Flexibly subset from an xarray Dataset or DataArray. Selections can be individual values or slices.
 def xr_flexsel(xr_object, time=None, vegtype=None):
