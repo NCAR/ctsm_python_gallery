@@ -264,7 +264,6 @@ def define_pftlist():
 
 
 # Does this vegetation type's name match (for a given comparison method) any member of a filtering list?
-# SSR TODO: Require that input be a single string.
 '''
 Methods:
     ok_contains:    True if any member of this_filter is found in this_vegtype.
@@ -274,7 +273,29 @@ Methods:
     notok_exact:    True if this_vegtype does not match any member of 
                     this_filter exactly.
 '''
-def is_this_vegtype(this_vegtype, this_filter, this_method):    
+def is_this_vegtype(this_vegtype, this_filter, this_method):
+
+    # Make sure data type of this_vegtype is acceptable
+    data_type_ok = lambda x: isinstance(x, str) or isinstance(x, int) or isinstance(x, np.int64)
+    ok_input = True
+    if not data_type_ok(this_vegtype):
+        if isinstance(this_vegtype, list):
+            if len(this_vegtype) == 1 and data_type_ok(this_vegtype[0]):
+                this_vegtype = this_vegtype[0]
+            elif data_type_ok(this_vegtype[0]):
+                raise TypeError("is_this_vegtype(): this_vegtype must be a single string or integer, not a list of them. Did you mean to call is_each_vegtype() instead?")
+            else:
+                ok_input = False
+        else:
+            ok_input = False
+    if not ok_input:
+        raise TypeError(f"is_this_vegtype(): First argument (this_vegtype) must be a string or integer, not {type(this_vegtype)}")
+    
+    # Make sure data type of this_filter is acceptable
+    if not np.iterable(this_filter):
+        raise TypeError(f"is_this_vegtype(): Second argument (this_filter) must be iterable (e.g., a list), not {type(this_filter)}")
+    
+    # Perform the comparison
     if this_method == "ok_contains":
         return any(n in this_vegtype for n in this_filter)
     elif this_method == "notok_contains":
@@ -284,7 +305,7 @@ def is_this_vegtype(this_vegtype, this_filter, this_method):
     elif this_method == "notok_exact":
         return not any(n == this_vegtype for n in this_filter)
     else:
-        raise ValueError(f"Unknown method: '{this_method}'")
+        raise ValueError(f"Unknown comparison method: '{this_method}'")
 
 
 # Get boolean list of whether each vegetation type in list is a managed crop
