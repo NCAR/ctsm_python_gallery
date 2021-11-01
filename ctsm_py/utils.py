@@ -390,7 +390,8 @@ def get_vegtype_str_da(vegtype_str):
     return vegtype_str_da
 
 
-# Set up function to drop unwanted vars in preprocessing of open_mfdataset(), making sure to include any unspecified variables that will be useful in gridding.
+# Function to drop unwanted variables in preprocessing of open_mfdataset(), making sure to include any unspecified variables that will be useful in gridding.
+# Also renames "pft" dimension (and all like-named variables, e.g., pft1d_itype_veg_str) to be named like "patch". This can later be reversed, for compatibility with other code, using patch2pft().
 def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
 
     if vars_to_import != None:
@@ -448,6 +449,29 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
     ds = xr.decode_cf(ds, decode_times = True)
     return ds
 
+# Rename "patch" dimension and any associated variables back to "pft". Uses a dictionary with the names of the dimensions and variables we want to rename. This allows us to do it all at once, which may be more efficient than one-by-one.
+def patch2pft(xr_object):
+
+    # Rename "patch" dimension
+    patch2pft_dict = {}
+    for thisDim in xr_object.dims:
+        if thisDim == "patch":
+            patch2pft_dict["patch"] = "pft"
+            break
+    
+    # Rename variables containing "patch"
+    if isinstance(xr_object, xr.Dataset):
+        pattern = re.compile("patch.*1d")
+        matches = [x for x in list(xr_object.keys()) if pattern.search(x) != None]
+        if len(matches) > 0:
+            for m in matches:
+                patch2pft_dict[m] = m.replace("patches","patchs").replace("patch","pft")
+    
+    # Do the rename
+    if len(patch2pft_dict) > 0:
+        xr_object = xr_object.rename(patch2pft_dict)
+    
+    return xr_object
 
 # Import a dataset that's spread over multiple files, only including specified variables. Concatenate by time.
 def import_ds(filelist, myVars=None, myVegtypes=None):
