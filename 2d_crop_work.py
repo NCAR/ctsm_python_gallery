@@ -55,7 +55,7 @@ this_ds = utils.import_ds(filelist, myVars=myVars, myVegtypes=utils.define_mgdcr
 thisVar = "CPHASE"
 
 thisvar_da = utils.get_thisVar_da(thisVar, this_ds)
-thisvar_da = utils.trim_to_mgd_crop(thisvar_da, this_ds.patches1d_itype_veg_str)
+thisvar_da = utils.trim_da_to_mgd_crop(thisvar_da, this_ds.patches1d_itype_veg_str)
 
 
 # %% Grid and make map, more efficiently, as function
