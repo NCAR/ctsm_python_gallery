@@ -263,27 +263,43 @@ def define_pftlist():
     return pftlist
 
 
-# Is this PFT a managed crop?
+# Does this vegetation type's name match (for a given comparison method) any member of a filtering list?
 # SSR TODO: Require that input be a single string.
-def is_this_vegtype(this_pft, this_list, method):    
-    if method == "ok_contains":
-        return any(n in this_pft for n in this_list)
-    elif method == "notok_contains":
-        return not any(n in this_pft for n in this_list)
-    elif method == "ok_exact":
-        return any(n == this_pft for n in this_list)
-    elif method == "notok_exact":
-        return not any(n == this_pft for n in this_list)
+'''
+Methods:
+    ok_contains:    True if any member of this_filter is found in this_vegtype.
+    notok_contains: True of no member of this_filter is found in this_vegtype.
+    ok_exact:       True if this_vegtype matches any member of this_filter 
+                    exactly.
+    notok_exact:    True if this_vegtype does not match any member of 
+                    this_filter exactly.
+'''
+def is_this_vegtype(this_vegtype, this_filter, this_method):    
+    if this_method == "ok_contains":
+        return any(n in this_vegtype for n in this_filter)
+    elif this_method == "notok_contains":
+        return not any(n in this_vegtype for n in this_filter)
+    elif this_method == "ok_exact":
+        return any(n == this_vegtype for n in this_filter)
+    elif this_method == "notok_exact":
+        return not any(n == this_vegtype for n in this_filter)
     else:
-        raise ValueError(f"Unknown method: '{method}'")
+        raise ValueError(f"Unknown method: '{this_method}'")
 
 
-# Get boolean list of whether each PFT in list is a managed crop
-def is_each_vegtype(this_pftlist, this_filter, this_method):
-    return [is_this_vegtype(x, this_filter, this_method) for x in this_pftlist]
+# Get boolean list of whether each vegetation type in list is a managed crop
+'''
+    this_vegtypelist: The list of vegetation types whose members you want to 
+                      test.
+    this_filter:      The list of strings against which you want to compare 
+                      each member of this_vegtypelist.
+    this_method:      How you want to do the comparison. See is_this_vegtype().
+'''
+def is_each_vegtype(this_vegtypelist, this_filter, this_method):
+    return [is_this_vegtype(x, this_filter, this_method) for x in this_vegtypelist]
 
 
-# List of managed crops in CLM
+# List (strings) of managed crops in CLM.
 def define_mgdcrop_list():
     notcrop_list = ["tree", "grass", "shrub", "unmanaged", "not_vegetated"]
     defined_pftlist = define_pftlist()
@@ -291,7 +307,7 @@ def define_mgdcrop_list():
     return [defined_pftlist[i] for i, x in enumerate(is_crop) if x]
 
 
-# Convert list of vegtypes to integer index equivalents
+# Convert list of vegtype strings to integer index equivalents.
 def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
     if isinstance(vegtype_mainlist, xr.Dataset):
         vegtype_mainlist = vegtype_mainlist.vegtype_str.values
@@ -325,9 +341,10 @@ def check_sel_type(this_sel):
     else:
         return type(this_sel)
 
-# Flexibly subset from an xarray Dataset or DataArray. Selections can be individual values or slices.
+
+# Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Selections can be individual values or slice()s.
 def xr_flexsel(xr_object, time=None, vegtype=None):
-    # SSR TODO: Optimize by starting selections with dimension that will result in the largest reduction of object size. Is there a way to do this without repeating a bunch of code, that DOESN'T involve writing another function (and therefore making another in-memory copy of the object)? Although I guess that's not an issue for Datasets that haven't yet been loaded into memory. But then, in that case, this optimization is unnecessary!
+    # SSR TODO: Optimize by starting selections with dimension that will result in the largest reduction of object size. Is there a way to do this without repeating a bunch of code, that DOESN'T involve writing another function (and therefore making another in-memory copy of the object)?
 
     if time !=  None:
         time_type = check_sel_type(time)
@@ -366,7 +383,7 @@ def xr_flexsel(xr_object, time=None, vegtype=None):
     return xr_object
 
 
-# Get PFT of each patch, in both integer and string forms
+# Get PFT of each patch, in both integer and string forms.
 def ivt_int_str(this_ds, this_pftlist):
     # First, get all the integer values; should be time*pft or pft*time. We will eventually just take the first timestep.
     vegtype_int = this_ds.patches1d_itype_veg
@@ -379,6 +396,7 @@ def ivt_int_str(this_ds, this_pftlist):
     return {"int": vegtype_int, "str": vegtype_str, "all_str": this_pftlist}
 
 
+# Convert a list of strings with vegetation type names into a DataArray. Used to add vegetation type info in import_ds().
 def get_vegtype_str_da(vegtype_str):
     nvt = len(vegtype_str)
     thisName = "vegtype_str"
@@ -390,7 +408,7 @@ def get_vegtype_str_da(vegtype_str):
     return vegtype_str_da
 
 
-# Function to drop unwanted variables in preprocessing of open_mfdataset(), making sure to include any unspecified variables that will be useful in gridding.
+# Function to drop unwanted variables in preprocessing of open_mfdataset(), making sure to NOT drop any unspecified variables that will be useful in gridding. Also adds vegetation type info in the form of a DataArray of strings.
 # Also renames "pft" dimension (and all like-named variables, e.g., pft1d_itype_veg_str) to be named like "patch". This can later be reversed, for compatibility with other code, using patch2pft().
 def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
 
@@ -449,6 +467,7 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
     ds = xr.decode_cf(ds, decode_times = True)
     return ds
 
+
 # Rename "patch" dimension and any associated variables back to "pft". Uses a dictionary with the names of the dimensions and variables we want to rename. This allows us to do it all at once, which may be more efficient than one-by-one.
 def patch2pft(xr_object):
 
@@ -473,7 +492,8 @@ def patch2pft(xr_object):
     
     return xr_object
 
-# Import a dataset that's spread over multiple files, only including specified variables. Concatenate by time.
+
+# Import a dataset that can be spread over multiple files, only including specified variables and/or vegetation types, concatenating by time. DOES actually read the dataset into memory, but only AFTER dropping unwanted variables and/or vegetation types.
 def import_ds(filelist, myVars=None, myVegtypes=None):
 
     # Convert myVegtypes here, if needed, to avoid repeating the process each time you read a file in xr.open_mfdataset().
@@ -483,7 +503,7 @@ def import_ds(filelist, myVars=None, myVegtypes=None):
         if isinstance(myVegtypes[0], str):
             myVegtypes = vegtype_str2int(myVegtypes)
 
-    # "preprocess" argument requires a function that only takes one variable (an xarray.Dataset object). Wrapping mfdataset_preproc() in this lambda function allows this. Could also just allow mfdataset_preproc() to access the myVars directly, but that's bad practice as it could lead to scoping issues.
+    # The xarray open_mfdataset() "preprocess" argument requires a function that takes exactly one variable (an xarray.Dataset object). Wrapping mfdataset_preproc() in this lambda function allows this. Could also just allow mfdataset_preproc() to access myVars and myVegtypes directly, but that's bad practice as it could lead to scoping issues.
     mfdataset_preproc_closure = \
         lambda ds: mfdataset_preproc(ds, myVars, myVegtypes)
 
@@ -500,7 +520,7 @@ def import_ds(filelist, myVars=None, myVegtypes=None):
     return this_ds
 
 
-# Return a DataArray, with defined coordinates, for a given variable in a dataset
+# Return a DataArray, with defined coordinates, for a given variable in a dataset.
 def get_thisVar_da(thisVar, this_ds):
 
     # Make DataArray for this variable
@@ -542,7 +562,7 @@ def trim_da_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
     return thisvar_da.isel(patch = [i for i, x in enumerate(is_crop) if x])
 
 
-# Make a geographically gridded DataArray (with PFT dimension) of one variable within a DataSet. Optionally subset by time index (integer) or slice.
+# Make a geographically gridded DataArray (with dimensions time, vegetation type [as string], lat, lon) of one variable within a Dataset. Optionally subset by time index (integer) or slice().
 def grid_one_variable(this_ds, thisVar, time=None):
 
     thisvar_da = get_thisVar_da(thisVar, this_ds)
