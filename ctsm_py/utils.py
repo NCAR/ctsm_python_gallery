@@ -465,7 +465,7 @@ def import_ds(filelist, myVars=None, myVegtypes=None):
 
     # Import
     if isinstance(filelist, list):
-        this_ds = xr.open_mfdataset(filelist, \
+        this_ds = xr.open_mfdataset(sorted(filelist), \
             data_vars="minimal", 
             preprocess=mfdataset_preproc_closure)
     elif isinstance(filelist, str):
