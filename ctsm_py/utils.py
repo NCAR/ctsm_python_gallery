@@ -177,3 +177,448 @@ def cyclic_dataset(ds, coord='lon'):
 
     return new_ds
 '''
+
+
+# List of PFTs used in CLM
+def define_pftlist():
+    pftlist =  ["not_vegetated",
+        "needleleaf_evergreen_temperate_tree",
+        "needleleaf_evergreen_boreal_tree",
+        "needleleaf_deciduous_boreal_tree",
+        "broadleaf_evergreen_tropical_tree",
+        "broadleaf_evergreen_temperate_tree",
+        "broadleaf_deciduous_tropical_tree",
+        "broadleaf_deciduous_temperate_tree",
+        "broadleaf_deciduous_boreal_tree",
+        "broadleaf_evergreen_shrub",
+        "broadleaf_deciduous_temperate_shrub",
+        "broadleaf_deciduous_boreal_shrub",
+        "c3_arctic_grass",
+        "c3_non-arctic_grass",
+        "c4_grass",
+        "unmanaged_c3_crop",
+        "unmanaged_c3_irrigated",
+        "temperate_corn",
+        "irrigated_temperate_corn",
+        "spring_wheat",
+        "irrigated_spring_wheat",
+        "winter_wheat",
+        "irrigated_winter_wheat",
+        "soybean",
+        "irrigated_soybean",
+        "barley",
+        "irrigated_barley",
+        "winter_barley",
+        "irrigated_winter_barley",
+        "rye",
+        "irrigated_rye",
+        "winter_rye",
+        "irrigated_winter_rye",
+        "cassava",
+        "irrigated_cassava",
+        "citrus",
+        "irrigated_citrus",
+        "cocoa",
+        "irrigated_cocoa",
+        "coffee",
+        "irrigated_coffee",
+        "cotton",
+        "irrigated_cotton",
+        "datepalm",
+        "irrigated_datepalm",
+        "foddergrass",
+        "irrigated_foddergrass",
+        "grapes",
+        "irrigated_grapes",
+        "groundnuts",
+        "irrigated_groundnuts",
+        "millet",
+        "irrigated_millet",
+        "oilpalm",
+        "irrigated_oilpalm",
+        "potatoes",
+        "irrigated_potatoes",
+        "pulses",
+        "irrigated_pulses",
+        "rapeseed",
+        "irrigated_rapeseed",
+        "rice",
+        "irrigated_rice",
+        "sorghum",
+        "irrigated_sorghum",
+        "sugarbeet",
+        "irrigated_sugarbeet",
+        "sugarcane",
+        "irrigated_sugarcane",
+        "sunflower",
+        "irrigated_sunflower",
+        "miscanthus",
+        "irrigated_miscanthus",
+        "switchgrass",
+        "irrigated_switchgrass",
+        "tropical_corn",
+        "irrigated_tropical_corn",
+        "tropical_soybean",
+        "irrigated_tropical_soybean"]
+    return pftlist
+
+
+# Does this vegetation type's name match (for a given comparison method) any member of a filtering list?
+'''
+Methods:
+    ok_contains:    True if any member of this_filter is found in this_vegtype.
+    notok_contains: True of no member of this_filter is found in this_vegtype.
+    ok_exact:       True if this_vegtype matches any member of this_filter 
+                    exactly.
+    notok_exact:    True if this_vegtype does not match any member of 
+                    this_filter exactly.
+'''
+def is_this_vegtype(this_vegtype, this_filter, this_method):
+
+    # Make sure data type of this_vegtype is acceptable
+    data_type_ok = lambda x: isinstance(x, str) or isinstance(x, int) or isinstance(x, np.int64)
+    ok_input = True
+    if not data_type_ok(this_vegtype):
+        if isinstance(this_vegtype, list):
+            if len(this_vegtype) == 1 and data_type_ok(this_vegtype[0]):
+                this_vegtype = this_vegtype[0]
+            elif data_type_ok(this_vegtype[0]):
+                raise TypeError("is_this_vegtype(): this_vegtype must be a single string or integer, not a list of them. Did you mean to call is_each_vegtype() instead?")
+            else:
+                ok_input = False
+        else:
+            ok_input = False
+    if not ok_input:
+        raise TypeError(f"is_this_vegtype(): First argument (this_vegtype) must be a string or integer, not {type(this_vegtype)}")
+    
+    # Make sure data type of this_filter is acceptable
+    if not np.iterable(this_filter):
+        raise TypeError(f"is_this_vegtype(): Second argument (this_filter) must be iterable (e.g., a list), not {type(this_filter)}")
+    
+    # Perform the comparison
+    if this_method == "ok_contains":
+        return any(n in this_vegtype for n in this_filter)
+    elif this_method == "notok_contains":
+        return not any(n in this_vegtype for n in this_filter)
+    elif this_method == "ok_exact":
+        return any(n == this_vegtype for n in this_filter)
+    elif this_method == "notok_exact":
+        return not any(n == this_vegtype for n in this_filter)
+    else:
+        raise ValueError(f"Unknown comparison method: '{this_method}'")
+
+
+# Get boolean list of whether each vegetation type in list is a managed crop
+'''
+    this_vegtypelist: The list of vegetation types whose members you want to 
+                      test.
+    this_filter:      The list of strings against which you want to compare 
+                      each member of this_vegtypelist.
+    this_method:      How you want to do the comparison. See is_this_vegtype().
+'''
+def is_each_vegtype(this_vegtypelist, this_filter, this_method):
+    return [is_this_vegtype(x, this_filter, this_method) for x in this_vegtypelist]
+
+
+# List (strings) of managed crops in CLM.
+def define_mgdcrop_list():
+    notcrop_list = ["tree", "grass", "shrub", "unmanaged", "not_vegetated"]
+    defined_pftlist = define_pftlist()
+    is_crop = is_each_vegtype(defined_pftlist, notcrop_list, "notok_contains")
+    return [defined_pftlist[i] for i, x in enumerate(is_crop) if x]
+
+
+# Convert list of vegtype strings to integer index equivalents.
+def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
+    if isinstance(vegtype_mainlist, xr.Dataset):
+        vegtype_mainlist = vegtype_mainlist.vegtype_str.values
+    elif isinstance(vegtype_mainlist, xr.DataArray):
+        vegtype_mainlist = vegtype_mainlist.values
+    elif vegtype_mainlist == None:
+        vegtype_mainlist = define_pftlist()
+    if not isinstance(vegtype_mainlist, list) and isinstance(vegtype_mainlist[0], str):
+        if isinstance(vegtype_mainlist, list):
+            raise TypeError(f"Not sure how to handle vegtype_mainlist as list of {type(vegtype_mainlist[0])}")
+        else:
+            raise TypeError(f"Not sure how to handle vegtype_mainlist as type {type(vegtype_mainlist[0])}")
+    ind_dict = dict((k,i) for i,k in enumerate(vegtype_mainlist))
+    inter = set(ind_dict).intersection(vegtype_str)
+    indices = [ ind_dict[x] for x in inter ]
+    return indices
+
+# Check the type of a selection. Used in xr_flexsel(). This function ended up only being used once there, but keep it separate anyway to avoid having to re-do it in the future.
+def check_sel_type(this_sel):
+    if isinstance(this_sel, slice):
+        if this_sel == slice(0):
+            raise ValueError("slice(0) will be empty")
+        elif this_sel.start != None:
+            return type(this_sel.start)
+        elif this_sel.stop != None:
+            return type(this_sel.stop)
+        elif this_sel.step != None:
+            return type(this_sel.step)
+        else:
+            raise TypeError("slice is all None?")
+    else:
+        return type(this_sel)
+
+
+# Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Selections can be individual values or slice()s.
+def xr_flexsel(xr_object, time=None, vegtype=None):
+    # SSR TODO: Optimize by starting selections with dimension that will result in the largest reduction of object size. Is there a way to do this without repeating a bunch of code, that DOESN'T involve writing another function (and therefore making another in-memory copy of the object)?
+
+    if time !=  None:
+        time_type = check_sel_type(time)
+        if time_type == int:
+            # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
+            if isinstance(time, int):
+                xr_object = xr_object.isel(time=slice(time,time+1))
+            else:
+                xr_object = xr_object.isel(time=time)
+        elif time_type == str:
+            xr_object = xr_object.sel(time=time)
+        else:
+            raise TypeError(f"'time' argument must be type int, str, or slice of those (not {type(time)})")
+
+    if vegtype !=  None:
+
+        # Convert to list, if needed
+        if not isinstance(vegtype, list):
+            vegtype = [vegtype]
+        
+        # Convert to indices, if needed
+        if isinstance(vegtype[0], str):
+            vegtype = vegtype_str2int(vegtype)
+        
+        # Get list of boolean(s)
+        if isinstance(vegtype[0], int):
+            is_vegtype = is_each_vegtype(xr_object.patches1d_itype_veg.values, vegtype, "ok_exact")
+        elif isinstance(vegtype[0], bool):
+            if len(vegtype) != len(xr_object.patch):
+                raise ValueError(f"If providing boolean 'vegtype' argument to xr_flexsel(), it must be the same length as xr_object.patch ({len(vegtype)} vs. {len(xr_object.patch)})")
+            is_vegtype = vegtype
+        else:
+            raise TypeError(f"Not sure how to handle 'vegtype' of type {type(vegtype)}")
+        xr_object = xr_object.sel(patch=[i for i, x in enumerate(is_vegtype) if x])
+    
+    return xr_object
+
+
+# Get PFT of each patch, in both integer and string forms.
+def ivt_int_str(this_ds, this_pftlist):
+    # First, get all the integer values; should be time*pft or pft*time. We will eventually just take the first timestep.
+    vegtype_int = this_ds.patches1d_itype_veg
+    vegtype_int.values = vegtype_int.values.astype(int)
+
+    # Convert to strings.
+    vegtype_str = list(np.array(this_pftlist)[vegtype_int.values])
+
+    # Return a dictionary with both results
+    return {"int": vegtype_int, "str": vegtype_str, "all_str": this_pftlist}
+
+
+# Convert a list of strings with vegetation type names into a DataArray. Used to add vegetation type info in import_ds().
+def get_vegtype_str_da(vegtype_str):
+    nvt = len(vegtype_str)
+    thisName = "vegtype_str"
+    vegtype_str_da = xr.DataArray(\
+        vegtype_str, 
+        coords={"ivt": np.arange(0,nvt)}, 
+        dims=["ivt"],
+        name = thisName)
+    return vegtype_str_da
+
+
+# Function to drop unwanted variables in preprocessing of open_mfdataset(), making sure to NOT drop any unspecified variables that will be useful in gridding. Also adds vegetation type info in the form of a DataArray of strings.
+# Also renames "pft" dimension (and all like-named variables, e.g., pft1d_itype_veg_str) to be named like "patch". This can later be reversed, for compatibility with other code, using patch2pft().
+def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
+
+    if vars_to_import != None:
+        # Get list of dimensions present in variables in vars_to_import.
+        dimList = []
+        for thisVar in vars_to_import:
+            # list(set(x)) returns a list of the unique items in x
+            dimList = list(set(dimList + list(ds.variables[thisVar].dims)))
+        
+        # Get any _1d variables that are associated with those dimensions. These will be useful in gridding. Also, if any dimension is "pft", set up to rename it and all like-named variables to "patch"
+        onedVars = []
+        pft2patch_dict = {}
+        for thisDim in dimList:
+            pattern = re.compile(f"{thisDim}.*1d")
+            matches = [x for x in list(ds.keys()) if pattern.search(x) != None]
+            onedVars = list(set(onedVars + matches))
+            if thisDim == "pft":
+                pft2patch_dict["pft"] = "patch"
+                for m in matches:
+                    pft2patch_dict[m] = m.replace("pft","patch").replace("patchs","patches")
+        
+        # Add dimensions and _1d variables to vars_to_import
+        vars_to_import = list(set(vars_to_import \
+            + list(ds.dims) + onedVars))
+
+        # Get list of variables to drop
+        varlist = list(ds.variables)
+        vars_to_drop = list(np.setdiff1d(varlist, vars_to_import))
+
+        # Drop them
+        ds = ds.drop_vars(vars_to_drop)
+
+    # Rename "pft" dimension and variables to "patch", if needed
+    if len(pft2patch_dict) > 0:
+        ds = ds.rename(pft2patch_dict)
+    
+    # Add vegetation type info
+    this_pftlist = define_pftlist()
+    ivt_int_str(ds, this_pftlist) # Includes check of whether vegtype changes over time anywhere
+    vegtype_da = get_vegtype_str_da(this_pftlist)
+    patches1d_itype_veg_str = vegtype_da.values[ds.isel(time=0).patches1d_itype_veg.values.astype(int)]
+    npatch = len(patches1d_itype_veg_str)
+    patches1d_itype_veg_str = xr.DataArray( \
+        patches1d_itype_veg_str,
+        coords={"patch": np.arange(0,npatch)}, 
+        dims=["patch"],
+        name = "patches1d_itype_veg_str")
+    ds = xr.merge([ds, vegtype_da, patches1d_itype_veg_str])
+
+    # Restrict to veg. types of interest, if any
+    if vegtypes_to_import != None:
+        ds = xr_flexsel(ds, vegtype=vegtypes_to_import)
+
+    # Finish import
+    ds = xr.decode_cf(ds, decode_times = True)
+    return ds
+
+
+# Rename "patch" dimension and any associated variables back to "pft". Uses a dictionary with the names of the dimensions and variables we want to rename. This allows us to do it all at once, which may be more efficient than one-by-one.
+def patch2pft(xr_object):
+
+    # Rename "patch" dimension
+    patch2pft_dict = {}
+    for thisDim in xr_object.dims:
+        if thisDim == "patch":
+            patch2pft_dict["patch"] = "pft"
+            break
+    
+    # Rename variables containing "patch"
+    if isinstance(xr_object, xr.Dataset):
+        pattern = re.compile("patch.*1d")
+        matches = [x for x in list(xr_object.keys()) if pattern.search(x) != None]
+        if len(matches) > 0:
+            for m in matches:
+                patch2pft_dict[m] = m.replace("patches","patchs").replace("patch","pft")
+    
+    # Do the rename
+    if len(patch2pft_dict) > 0:
+        xr_object = xr_object.rename(patch2pft_dict)
+    
+    return xr_object
+
+
+# Import a dataset that can be spread over multiple files, only including specified variables and/or vegetation types, concatenating by time. DOES actually read the dataset into memory, but only AFTER dropping unwanted variables and/or vegetation types.
+def import_ds(filelist, myVars=None, myVegtypes=None):
+
+    # Convert myVegtypes here, if needed, to avoid repeating the process each time you read a file in xr.open_mfdataset().
+    if myVegtypes != None:
+        if not isinstance(myVegtypes, list):
+            myVegtypes = [myVegtypes]
+        if isinstance(myVegtypes[0], str):
+            myVegtypes = vegtype_str2int(myVegtypes)
+
+    # The xarray open_mfdataset() "preprocess" argument requires a function that takes exactly one variable (an xarray.Dataset object). Wrapping mfdataset_preproc() in this lambda function allows this. Could also just allow mfdataset_preproc() to access myVars and myVegtypes directly, but that's bad practice as it could lead to scoping issues.
+    mfdataset_preproc_closure = \
+        lambda ds: mfdataset_preproc(ds, myVars, myVegtypes)
+
+    # Import
+    if isinstance(filelist, list):
+        this_ds = xr.open_mfdataset(sorted(filelist), \
+            data_vars="minimal", 
+            preprocess=mfdataset_preproc_closure)
+    elif isinstance(filelist, str):
+        this_ds = xr.open_dataset(filelist)
+        this_ds = mfdataset_preproc(this_ds, myVars)
+        this_ds = this_ds.compute()
+    
+    return this_ds
+
+
+# Return a DataArray, with defined coordinates, for a given variable in a dataset.
+def get_thisVar_da(thisVar, this_ds):
+
+    # Make DataArray for this variable
+    thisvar_da = np.array(this_ds.variables[thisVar])
+    theseDims = this_ds.variables[thisVar].dims
+    thisvar_da = xr.DataArray(thisvar_da, 
+        dims = theseDims)
+
+    # Define coordinates of this variable's DataArray
+    dimsDict = dict()
+    for thisDim in theseDims:
+        dimsDict[thisDim] = this_ds[thisDim]
+    thisvar_da = thisvar_da.assign_coords(dimsDict)
+
+    return thisvar_da
+
+
+# Given a DataArray, remove all patches except those planted with managed crops.
+def trim_da_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
+
+    # Handle input DataArray without patch dimension
+    if not any(np.array(list(thisvar_da.dims)) == "patch"):
+        print("Input DataArray has no patch dimension and therefore trim_to_mgd_crop() has no effect.")
+        return thisvar_da
+    
+    # Throw error if patches1d_itype_veg_str isn't strings
+    if isinstance(patches1d_itype_veg_str, xr.DataArray):
+        patches1d_itype_veg_str = patches1d_itype_veg_str.values
+    if not isinstance(patches1d_itype_veg_str[0], str):
+        raise TypeError("Input patches1d_itype_veg_str is not in string form, and therefore trim_to_mgd_crop() cannot work.")
+    
+    # Get boolean list of whether each patch is planted with a managed crop
+    notcrop_list = ["tree", "grass", "shrub", "unmanaged", "not_vegetated"]
+    is_crop = is_each_vegtype(patches1d_itype_veg_str, notcrop_list, "notok_contains")
+
+    # Warn if no managed crops were found, but still return the empty result
+    if np.all(np.bitwise_not(is_crop)):
+        print("No managed crops found! Returning empty DataArray.")
+    return thisvar_da.isel(patch = [i for i, x in enumerate(is_crop) if x])
+
+
+# Make a geographically gridded DataArray (with dimensions time, vegetation type [as string], lat, lon) of one variable within a Dataset. Optionally subset by time index (integer) or slice().
+def grid_one_variable(this_ds, thisVar, time=None):
+
+    thisvar_da = get_thisVar_da(thisVar, this_ds)
+    ixy_da = get_thisVar_da("patches1d_ixy", this_ds)
+    jxy_da = get_thisVar_da("patches1d_jxy", this_ds)
+    vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
+
+    # Get this variable's values for selected time step(s), if provided
+    thisvar_da = xr_flexsel(thisvar_da, time=time)
+
+    # Get dataset lon/lat grid
+    lon = this_ds.lon
+    lat = this_ds.lat
+
+    # Set up empty array: time * vegtype * lat * lon
+    ntime = len(thisvar_da.time)
+    nvt = np.max(this_ds.patches1d_itype_veg.values) + 1
+    nlat = len(lat.values)
+    nlon = len(lon.values)
+    thisvar_tpyx = np.empty([ntime, nvt, nlat, nlon])
+
+    # Fill with this variable
+    thisvar_tpyx[:,
+        vt_da, 
+        jxy_da.values.astype(int) - 1, 
+        ixy_da.values.astype(int) - 1] = thisvar_da.values
+
+    # Assign coordinates and name
+    thisvar_tpyx = xr.DataArray(thisvar_tpyx, dims=("time","ivt_str","lat","lon"))
+    thisvar_tpyx = thisvar_tpyx.assign_coords( \
+        time = thisvar_da.time,
+        ivt_str  = this_ds.vegtype_str.values,
+        lat  = lat.values,
+        lon  = lon.values)
+    thisvar_tpyx.name = thisVar
+
+    return thisvar_tpyx
+
