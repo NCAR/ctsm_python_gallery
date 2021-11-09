@@ -535,7 +535,7 @@ def import_ds(filelist, myVars=None, myVegtypes=None):
             preprocess=mfdataset_preproc_closure)
     elif isinstance(filelist, str):
         this_ds = xr.open_dataset(filelist)
-        this_ds = mfdataset_preproc(this_ds, myVars)
+        this_ds = mfdataset_preproc(this_ds, myVars, myVegtypes)
         this_ds = this_ds.compute()
     
     return this_ds
