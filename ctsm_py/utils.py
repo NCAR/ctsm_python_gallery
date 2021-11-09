@@ -468,17 +468,18 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
         ds = ds.rename(pft2patch_dict)
     
     # Add vegetation type info
-    this_pftlist = define_pftlist()
-    ivt_int_str(ds, this_pftlist) # Includes check of whether vegtype changes over time anywhere
-    vegtype_da = get_vegtype_str_da(this_pftlist)
-    patches1d_itype_veg_str = vegtype_da.values[ds.isel(time=0).patches1d_itype_veg.values.astype(int)]
-    npatch = len(patches1d_itype_veg_str)
-    patches1d_itype_veg_str = xr.DataArray( \
-        patches1d_itype_veg_str,
-        coords={"patch": np.arange(0,npatch)}, 
-        dims=["patch"],
-        name = "patches1d_itype_veg_str")
-    ds = xr.merge([ds, vegtype_da, patches1d_itype_veg_str])
+    if "patches1d_itype_veg" in list(ds):
+        this_pftlist = define_pftlist()
+        ivt_int_str(ds, this_pftlist) # Includes check of whether vegtype changes over time anywhere
+        vegtype_da = get_vegtype_str_da(this_pftlist)
+        patches1d_itype_veg_str = vegtype_da.values[ds.isel(time=0).patches1d_itype_veg.values.astype(int)]
+        npatch = len(patches1d_itype_veg_str)
+        patches1d_itype_veg_str = xr.DataArray( \
+            patches1d_itype_veg_str,
+            coords={"patch": np.arange(0,npatch)}, 
+            dims=["patch"],
+            name = "patches1d_itype_veg_str")
+        ds = xr.merge([ds, vegtype_da, patches1d_itype_veg_str])
 
     # Restrict to veg. types of interest, if any
     if vegtypes_to_import != None:
