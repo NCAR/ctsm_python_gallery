@@ -622,6 +622,7 @@ def trim_da_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
 
 
 # Make a geographically gridded DataArray (with dimensions time, vegetation type [as string], lat, lon) of one variable within a Dataset. Optional keyword arguments will be passed to xr_flexsel() to select single steps or slices along the specified ax(ie)s.
+# SSR TODO: Allow for flexible input and output dimensions.
 def grid_one_variable(this_ds, thisVar, **kwargs):
 
     thisvar_da = get_thisVar_da(thisVar, this_ds)
