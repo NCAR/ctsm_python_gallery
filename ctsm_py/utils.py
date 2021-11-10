@@ -622,42 +622,56 @@ def trim_da_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
 
 
 # Make a geographically gridded DataArray (with dimensions time, vegetation type [as string], lat, lon) of one variable within a Dataset. Optional keyword arguments will be passed to xr_flexsel() to select single steps or slices along the specified ax(ie)s.
-# SSR TODO: Allow for flexible input and output dimensions.
+# SSR TODO: IN PROGRESS: Allow for flexible input and output dimensions.
 def grid_one_variable(this_ds, thisVar, **kwargs):
-
     thisvar_da = get_thisVar_da(thisVar, this_ds)
     ixy_da = get_thisVar_da("patches1d_ixy", this_ds)
     jxy_da = get_thisVar_da("patches1d_jxy", this_ds)
     vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
 
-    # Get this variable's values for selected time step(s), if provided
+    # Get this variable's values for selection(s), if provided
     thisvar_da = xr_flexsel(thisvar_da, **kwargs)
+    
+    # Get new dimension list
+    new_dims = list(thisvar_da.dims)
+    ### Replace "patch" with "ivt_str" (vegetation type, as string)
+    if "patch" in new_dims:
+        new_dims = ["ivt_str" if x == "patch" else x for x in new_dims]
+    ### Add lat and lon to end of list
+    new_dims = new_dims + ["lat", "lon"]
+    print(f"new_dims: {new_dims}")
 
-    # Get dataset lon/lat grid
-    lon = this_ds.lon
-    lat = this_ds.lat
-
-    # Set up empty array: time * vegtype * lat * lon
-    ntime = len(thisvar_da.time)
-    nvt = np.max(this_ds.patches1d_itype_veg.values) + 1
-    nlat = len(lat.values)
-    nlon = len(lon.values)
-    thisvar_tpyx = np.empty([ntime, nvt, nlat, nlon])
+    # Set up empty array
+    n_list = []
+    for dim in new_dims:
+        if dim == "ivt_str":
+            n = np.max(this_ds.patches1d_itype_veg.values) + 1
+        elif dim in thisvar_da.coords:
+            n = thisvar_da.sizes[dim]
+        else:
+            n = this_ds.sizes[dim]
+        n_list = n_list + [n]
+    thisvar_gridded = np.empty(n_list)
 
     # Fill with this variable
-    thisvar_tpyx[:,
+    if new_dims != ['time', 'ivt_str', 'lat', 'lon']:
+        raise ValueError("For now, grid_one_variable() only works with output dimensions ['time', 'ivt_str', 'lat', 'lon']")
+    thisvar_gridded[:,
         vt_da, 
         jxy_da.values.astype(int) - 1, 
         ixy_da.values.astype(int) - 1] = thisvar_da.values
 
     # Assign coordinates and name
-    thisvar_tpyx = xr.DataArray(thisvar_tpyx, dims=("time","ivt_str","lat","lon"))
-    thisvar_tpyx = thisvar_tpyx.assign_coords( \
-        time = thisvar_da.time,
-        ivt_str  = this_ds.vegtype_str.values,
-        lat  = lat.values,
-        lon  = lon.values)
-    thisvar_tpyx.name = thisVar
+    thisvar_gridded = xr.DataArray(thisvar_gridded, dims=tuple(new_dims))
+    for dim in new_dims:
+        if dim == "ivt_str":
+            values = this_ds.vegtype_str.values
+        elif dim in thisvar_da.coords:
+            values = thisvar_da[dim]
+        else:
+            values = this_ds[dim].values
+        thisvar_gridded = thisvar_gridded.assign_coords({dim: values})
+    thisvar_gridded.name = thisVar
 
-    return thisvar_tpyx
+    return thisvar_gridded
 
