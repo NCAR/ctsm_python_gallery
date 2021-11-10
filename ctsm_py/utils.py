@@ -320,6 +320,43 @@ def is_each_vegtype(this_vegtypelist, this_filter, this_method):
     return [is_this_vegtype(x, this_filter, this_method) for x in this_vegtypelist]
 
 
+# Convert a latitude axis that's -180 to 180 around the international date line to one that's 0 to 360 around the prime meridian. If you pass in a Dataset or DataArray, the "lon" coordinates will be changed. Otherwise, it assumes you're passing in numeric data.
+def lon_idl2pm(lons_in):
+    def do_it(tmp):
+        if np.any(tmp > 180):
+            raise ValueError(f"Maximum longitude is already > 180 ({np.max(tmp)})")
+        elif np.any(tmp < -180):
+            raise ValueError(f"Minimum longitude is < -180 ({np.min(tmp)})")
+        tmp = tmp + 360
+        tmp = np.mod(tmp, 360)
+        return tmp
+    if isinstance(lons_in, (xr.DataArray, xr.Dataset)):
+        lons_out = lons_in
+        lons_out['lon'] = do_it(lons_in.lon.values)
+    else:
+        lons_out = do_it(lons_in)
+        
+    return lons_out
+
+
+# Convert a latitude axis that's 0 to 360 around the prime meridian to one that's -180 to 180 around the international date line. If you pass in a Dataset or DataArray, the "lon" coordinates will be changed. Otherwise, this assumes you're passing in numeric data.
+def lon_pm2idl(lons_in):
+    def do_it(tmp):
+        if np.any(tmp < 0):
+            raise ValueError(f"Minimum longitude is already < 0 ({np.min(tmp)})")
+        elif np.any(tmp > 360):
+            raise ValueError(f"Maximum longitude is > 360 ({np.max(tmp)})")
+        tmp = np.mod((tmp + 180),360)-180
+        return tmp
+    if isinstance(lons_in, (xr.DataArray, xr.Dataset)):
+        lons_out = lons_in
+        lons_out['lon'] = do_it(lons_in.lon.values)
+    else:
+        lons_out = do_it(lons_in)
+        
+    return lons_out
+
+
 # List (strings) of managed crops in CLM.
 def define_mgdcrop_list():
     notcrop_list = ["tree", "grass", "shrub", "unmanaged", "not_vegetated"]
