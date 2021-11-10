@@ -400,43 +400,47 @@ def check_sel_type(this_sel):
         return type(this_sel)
 
 
-# Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Selections can be individual values or slice()s.
-def xr_flexsel(xr_object, time=None, vegtype=None):
-    # SSR TODO: Optimize by starting selections with dimension that will result in the largest reduction of object size. Is there a way to do this without repeating a bunch of code, that DOESN'T involve writing another function (and therefore making another in-memory copy of the object)?
+# Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size.
+def xr_flexsel(xr_object, **kwargs):
+    
+    for key, value in kwargs.items():
 
-    if time !=  None:
-        time_type = check_sel_type(time)
-        if time_type == int:
-            # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
-            if isinstance(time, int):
-                xr_object = xr_object.isel(time=slice(time,time+1))
+        if key == "time":
+            time_type = check_sel_type(value)
+            if time_type == int:
+                # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
+                if isinstance(value, int):
+                    xr_object = xr_object.isel(time=slice(value,value+1))
+                else:
+                    xr_object = xr_object.isel(time=value)
+            elif time_type == str:
+                xr_object = xr_object.sel(time=value)
             else:
-                xr_object = xr_object.isel(time=time)
-        elif time_type == str:
-            xr_object = xr_object.sel(time=time)
-        else:
-            raise TypeError(f"'time' argument must be type int, str, or slice of those (not {type(time)})")
+                raise TypeError(f"'time' argument must be type int, str, or slice of those (not {type(value)})")
 
-    if vegtype !=  None:
+        elif key == "vegtype":
 
-        # Convert to list, if needed
-        if not isinstance(vegtype, list):
-            vegtype = [vegtype]
+            # Convert to list, if needed
+            if not isinstance(value, list):
+                value = [value]
+            
+            # Convert to indices, if needed
+            if isinstance(value[0], str):
+                value = vegtype_str2int(value)
+            
+            # Get list of boolean(s)
+            if isinstance(value[0], int):
+                is_vegtype = is_each_vegtype(xr_object.patches1d_itype_veg.values, value, "ok_exact")
+            elif isinstance(value[0], bool):
+                if len(value) != len(xr_object.patch):
+                    raise ValueError(f"If providing boolean 'vegtype' argument to xr_flexsel(), it must be the same length as xr_object.patch ({len(value)} vs. {len(xr_object.patch)})")
+                is_vegtype = value
+            else:
+                raise TypeError(f"Not sure how to handle 'vegtype' of type {type(value)}")
+            xr_object = xr_object.sel(patch=[i for i, x in enumerate(is_vegtype) if x])
         
-        # Convert to indices, if needed
-        if isinstance(vegtype[0], str):
-            vegtype = vegtype_str2int(vegtype)
-        
-        # Get list of boolean(s)
-        if isinstance(vegtype[0], int):
-            is_vegtype = is_each_vegtype(xr_object.patches1d_itype_veg.values, vegtype, "ok_exact")
-        elif isinstance(vegtype[0], bool):
-            if len(vegtype) != len(xr_object.patch):
-                raise ValueError(f"If providing boolean 'vegtype' argument to xr_flexsel(), it must be the same length as xr_object.patch ({len(vegtype)} vs. {len(xr_object.patch)})")
-            is_vegtype = vegtype
         else:
-            raise TypeError(f"Not sure how to handle 'vegtype' of type {type(vegtype)}")
-        xr_object = xr_object.sel(patch=[i for i, x in enumerate(is_vegtype) if x])
+            raise KeyError(f'Dimension "{key}" not recognized')
     
     return xr_object
 
@@ -621,8 +625,8 @@ def trim_da_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
     return thisvar_da.isel(patch = [i for i, x in enumerate(is_crop) if x])
 
 
-# Make a geographically gridded DataArray (with dimensions time, vegetation type [as string], lat, lon) of one variable within a Dataset. Optionally subset by time index (integer) or slice().
-def grid_one_variable(this_ds, thisVar, time=None):
+# Make a geographically gridded DataArray (with dimensions time, vegetation type [as string], lat, lon) of one variable within a Dataset. Optional keyword arguments will be passed to xr_flexsel() to select single steps or slices along the specified ax(ie)s.
+def grid_one_variable(this_ds, thisVar, **kwargs):
 
     thisvar_da = get_thisVar_da(thisVar, this_ds)
     ixy_da = get_thisVar_da("patches1d_ixy", this_ds)
@@ -630,7 +634,7 @@ def grid_one_variable(this_ds, thisVar, time=None):
     vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
 
     # Get this variable's values for selected time step(s), if provided
-    thisvar_da = xr_flexsel(thisvar_da, time=time)
+    thisvar_da = xr_flexsel(thisvar_da, **kwargs)
 
     # Get dataset lon/lat grid
     lon = this_ds.lon
