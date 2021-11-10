@@ -405,20 +405,7 @@ def xr_flexsel(xr_object, **kwargs):
     
     for key, value in kwargs.items():
 
-        if key == "time":
-            time_type = check_sel_type(value)
-            if time_type == int:
-                # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
-                if isinstance(value, int):
-                    xr_object = xr_object.isel(time=slice(value,value+1))
-                else:
-                    xr_object = xr_object.isel(time=value)
-            elif time_type == str:
-                xr_object = xr_object.sel(time=value)
-            else:
-                raise TypeError(f"'time' argument must be type int, str, or slice of those (not {type(value)})")
-
-        elif key == "vegtype":
+        if key == "vegtype":
 
             # Convert to list, if needed
             if not isinstance(value, list):
@@ -440,7 +427,16 @@ def xr_flexsel(xr_object, **kwargs):
             xr_object = xr_object.sel(patch=[i for i, x in enumerate(is_vegtype) if x])
         
         else:
-            raise KeyError(f'Dimension "{key}" not recognized')
+            this_type = check_sel_type(value)
+            if this_type == int:
+                # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
+                if isinstance(value, int):
+                    value = slice(value,value+1)
+                xr_object = xr_object.isel({key: value})
+            elif this_type == str:
+                xr_object = xr_object.sel({key: value})
+            else:
+                raise TypeError(f"Selection must be type int, str, or slice of those (not {type(value)})")
     
     return xr_object
 
