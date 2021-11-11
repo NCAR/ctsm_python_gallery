@@ -401,7 +401,7 @@ def check_sel_type(this_sel):
 
 
 # Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size.
-def xr_flexsel(xr_object, **kwargs):
+def xr_flexsel(xr_object, patches1d_itype_veg=None, **kwargs):
     
     for key, value in kwargs.items():
 
@@ -417,7 +417,9 @@ def xr_flexsel(xr_object, **kwargs):
             
             # Get list of boolean(s)
             if isinstance(value[0], int):
-                is_vegtype = is_each_vegtype(xr_object.patches1d_itype_veg.values, value, "ok_exact")
+                if isinstance(patches1d_itype_veg, type(None)):
+                    patches1d_itype_veg = xr_object.patches1d_itype_veg.values
+                is_vegtype = is_each_vegtype(patches1d_itype_veg, value, "ok_exact")
             elif isinstance(value[0], bool):
                 if len(value) != len(xr_object.patch):
                     raise ValueError(f"If providing boolean 'vegtype' argument to xr_flexsel(), it must be the same length as xr_object.patch ({len(value)} vs. {len(xr_object.patch)})")
