@@ -279,6 +279,8 @@ def is_this_vegtype(this_vegtype, this_filter, this_method):
     data_type_ok = lambda x: isinstance(x, str) or isinstance(x, int) or isinstance(x, np.int64)
     ok_input = True
     if not data_type_ok(this_vegtype):
+        if isinstance(this_vegtype, xr.core.dataarray.DataArray):
+            this_vegtype = this_vegtype.values
         if isinstance(this_vegtype, (list, np.ndarray)):
             if len(this_vegtype) == 1 and data_type_ok(this_vegtype[0]):
                 this_vegtype = this_vegtype[0]
@@ -429,6 +431,8 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, **kwargs):
             else:
                 raise TypeError(f"Not sure how to handle 'vegtype' of type {type(value)}")
             xr_object = xr_object.isel(patch=[i for i, x in enumerate(is_vegtype) if x])
+            if "ivt" in xr_object:
+                xr_object = xr_object.isel(ivt=is_each_vegtype(xr_object.ivt.values, value, "ok_exact"))
         
         else:
             this_type = check_sel_type(value)
