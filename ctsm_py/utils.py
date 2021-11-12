@@ -632,13 +632,22 @@ def trim_da_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
 # Make a geographically gridded DataArray (with dimensions time, vegetation type [as string], lat, lon) of one variable within a Dataset. Optional keyword arguments will be passed to xr_flexsel() to select single steps or slices along the specified ax(ie)s.
 # SSR TODO: IN PROGRESS: Allow for flexible input and output dimensions.
 def grid_one_variable(this_ds, thisVar, **kwargs):
+    
+    # Get this Dataset's values for selection(s), if provided
+    this_ds = xr_flexsel(this_ds, \
+        **kwargs)
+    
+    # Get DataArrays needed for gridding
     thisvar_da = get_thisVar_da(thisVar, this_ds)
     ixy_da = get_thisVar_da("patches1d_ixy", this_ds)
     jxy_da = get_thisVar_da("patches1d_jxy", this_ds)
     vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
-
-    # Get this variable's values for selection(s), if provided
-    thisvar_da = xr_flexsel(thisvar_da, **kwargs)
+    
+    # Renumber vt_da to work as indices on new ivt dimension, if needed.
+    ### Ensures that the unique set of vt_da values begins with 1 and
+    ### contains no missing steps.
+    if "vegtype" in kwargs.keys():
+        vt_da.values = np.array([np.where(this_ds.ivt.values == x)[0][0] for x in vt_da.values])
     
     # Get new dimension list
     new_dims = list(thisvar_da.dims)
@@ -653,7 +662,7 @@ def grid_one_variable(this_ds, thisVar, **kwargs):
     n_list = []
     for dim in new_dims:
         if dim == "ivt_str":
-            n = np.max(this_ds.patches1d_itype_veg.values) + 1
+            n = this_ds.sizes["ivt"]
         elif dim in thisvar_da.coords:
             n = thisvar_da.sizes[dim]
         else:
