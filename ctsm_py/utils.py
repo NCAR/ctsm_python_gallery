@@ -674,6 +674,7 @@ def grid_one_variable(this_ds, thisVar, unsupported=False, **kwargs):
             n = this_ds.sizes[dim]
         n_list = n_list + [n]
     thisvar_gridded = np.empty(n_list)
+    thisvar_gridded[:] = np.NaN
 
     # Fill with this variable
     if new_dims != ['time', 'ivt_str', 'lat', 'lon']:
@@ -682,6 +683,8 @@ def grid_one_variable(this_ds, thisVar, unsupported=False, **kwargs):
         vt_da, 
         jxy_da.values.astype(int) - 1, 
         ixy_da.values.astype(int) - 1] = thisvar_da.values
+    if not np.any(np.bitwise_not(np.isnan(thisvar_gridded))):
+        raise RuntimeError("thisvar_gridded was not filled! (Or was filled with just NaN)")
 
     # Assign coordinates and name
     thisvar_gridded = xr.DataArray(thisvar_gridded, dims=tuple(new_dims))
