@@ -279,7 +279,7 @@ def is_this_vegtype(this_vegtype, this_filter, this_method):
     data_type_ok = lambda x: isinstance(x, str) or isinstance(x, int) or isinstance(x, np.int64)
     ok_input = True
     if not data_type_ok(this_vegtype):
-        if isinstance(this_vegtype, list):
+        if isinstance(this_vegtype, (list, np.ndarray)):
             if len(this_vegtype) == 1 and data_type_ok(this_vegtype[0]):
                 this_vegtype = this_vegtype[0]
             elif data_type_ok(this_vegtype[0]):
@@ -419,6 +419,8 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, **kwargs):
             if isinstance(value[0], int):
                 if isinstance(patches1d_itype_veg, type(None)):
                     patches1d_itype_veg = xr_object.patches1d_itype_veg.values
+                elif isinstance(patches1d_itype_veg, xr.core.dataarray.DataArray):
+                    patches1d_itype_veg = patches1d_itype_veg.values
                 is_vegtype = is_each_vegtype(patches1d_itype_veg, value, "ok_exact")
             elif isinstance(value[0], bool):
                 if len(value) != len(xr_object.patch):
