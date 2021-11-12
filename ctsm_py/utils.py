@@ -636,7 +636,6 @@ def trim_da_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
 
 
 # Make a geographically gridded DataArray (with dimensions time, vegetation type [as string], lat, lon) of one variable within a Dataset. Optional keyword arguments will be passed to xr_flexsel() to select single steps or slices along the specified ax(ie)s.
-# SSR TODO: IN PROGRESS: Allow for flexible input and output dimensions.
 def grid_one_variable(this_ds, thisVar, unsupported=False, **kwargs):
     
     # Get this Dataset's values for selection(s), if provided
@@ -657,9 +656,12 @@ def grid_one_variable(this_ds, thisVar, unsupported=False, **kwargs):
     
     # Get new dimension list
     new_dims = list(thisvar_da.dims)
-    ### Replace "patch" with "ivt_str" (vegetation type, as string)
+    ### Remove "patch".
     if "patch" in new_dims:
-        new_dims = ["ivt_str" if x == "patch" else x for x in new_dims]
+        new_dims.remove("patch")
+    #  Add "ivt_str" (vegetation type, as string). This needs to go at the end, to avoid a possible situation where you wind up with multiple Ellipsis members of fill_indices.
+    if "ivt" in this_ds:
+        new_dims.append("ivt_str")
     ### Add lat and lon to end of list
     new_dims = new_dims + ["lat", "lon"]
 
@@ -677,12 +679,18 @@ def grid_one_variable(this_ds, thisVar, unsupported=False, **kwargs):
     thisvar_gridded[:] = np.NaN
 
     # Fill with this variable
-    if new_dims != ['time', 'ivt_str', 'lat', 'lon']:
-        raise ValueError("For now, grid_one_variable() only works with output dimensions ['time', 'ivt_str', 'lat', 'lon']")
-    thisvar_gridded[:,
-        vt_da, 
-        jxy_da.values.astype(int) - 1, 
-        ixy_da.values.astype(int) - 1] = thisvar_da.values
+    fill_indices = []
+    for dim in new_dims:
+        if dim == "lat":
+            fill_indices.append(jxy_da.values.astype(int) - 1)
+        elif dim == "lon":
+            fill_indices.append(ixy_da.values.astype(int) - 1)
+        elif dim == "ivt_str":
+            fill_indices.append(vt_da)
+        elif not fill_indices:
+        # I.e., if fill_indices is empty. Could also do "elif len(fill_indices)==0".
+            fill_indices.append(Ellipsis)
+    thisvar_gridded[tuple(fill_indices[:len(fill_indices)])] = thisvar_da.values
     if not np.any(np.bitwise_not(np.isnan(thisvar_gridded))):
         raise RuntimeError("thisvar_gridded was not filled! (Or was filled with just NaN)")
 
