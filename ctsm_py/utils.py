@@ -663,7 +663,6 @@ def grid_one_variable(this_ds, thisVar, unsupported=False, **kwargs):
         new_dims = ["ivt_str" if x == "patch" else x for x in new_dims]
     ### Add lat and lon to end of list
     new_dims = new_dims + ["lat", "lon"]
-    print(f"new_dims: {new_dims}")
 
     # Set up empty array
     n_list = []
