@@ -653,8 +653,7 @@ def grid_one_variable(this_ds, thisVar, unsupported=False, **kwargs):
     # Renumber vt_da to work as indices on new ivt dimension, if needed.
     ### Ensures that the unique set of vt_da values begins with 1 and
     ### contains no missing steps.
-    if "vegtype" in kwargs.keys():
-        vt_da.values = np.array([np.where(this_ds.ivt.values == x)[0][0] for x in vt_da.values])
+    vt_da.values = np.array([np.where(this_ds.ivt.values == x)[0][0] for x in vt_da.values])
     
     # Get new dimension list
     new_dims = list(thisvar_da.dims)
