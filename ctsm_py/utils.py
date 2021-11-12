@@ -428,7 +428,7 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, **kwargs):
                 is_vegtype = value
             else:
                 raise TypeError(f"Not sure how to handle 'vegtype' of type {type(value)}")
-            xr_object = xr_object.sel(patch=[i for i, x in enumerate(is_vegtype) if x])
+            xr_object = xr_object.isel(patch=[i for i, x in enumerate(is_vegtype) if x])
         
         else:
             this_type = check_sel_type(value)
