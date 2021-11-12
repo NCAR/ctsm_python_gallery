@@ -403,7 +403,13 @@ def check_sel_type(this_sel):
 
 
 # Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size.
-def xr_flexsel(xr_object, patches1d_itype_veg=None, **kwargs):
+def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, **kwargs):
+    
+    # For now, only time and vegtype selections are supported
+    if not unsupported:
+        for key in kwargs.keys():
+            if key not in ["time", "vegtype"]:
+                raise ValueError(f"xr_flexsel() only tested with time and vegtype. To run with unsupported dimensions like {key}, specify unsupported=True.")
     
     for key, value in kwargs.items():
 
@@ -631,10 +637,11 @@ def trim_da_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
 
 # Make a geographically gridded DataArray (with dimensions time, vegetation type [as string], lat, lon) of one variable within a Dataset. Optional keyword arguments will be passed to xr_flexsel() to select single steps or slices along the specified ax(ie)s.
 # SSR TODO: IN PROGRESS: Allow for flexible input and output dimensions.
-def grid_one_variable(this_ds, thisVar, **kwargs):
+def grid_one_variable(this_ds, thisVar, unsupported=False, **kwargs):
     
     # Get this Dataset's values for selection(s), if provided
     this_ds = xr_flexsel(this_ds, \
+        unsupported=unsupported,
         **kwargs)
     
     # Get DataArrays needed for gridding
