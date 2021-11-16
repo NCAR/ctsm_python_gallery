@@ -483,6 +483,15 @@ def get_vegtype_str_da(vegtype_str):
 # Function to drop unwanted variables in preprocessing of open_mfdataset(), making sure to NOT drop any unspecified variables that will be useful in gridding. Also adds vegetation type info in the form of a DataArray of strings.
 # Also renames "pft" dimension (and all like-named variables, e.g., pft1d_itype_veg_str) to be named like "patch". This can later be reversed, for compatibility with other code, using patch2pft().
 def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
+    
+    # Rename "pft" dimension and variables to "patch", if needed
+    if "pft" in ds.dims:
+        pattern = re.compile("pft.*1d")
+        matches = [x for x in list(ds.keys()) if pattern.search(x) != None]
+        pft2patch_dict = {"pft": "patch"}
+        for m in matches:
+            pft2patch_dict[m] = m.replace("pft","patch").replace("patchs","patches")
+        ds = ds.rename(pft2patch_dict)
 
     if vars_to_import != None:
         # Get list of dimensions present in variables in vars_to_import.
@@ -493,15 +502,10 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
         
         # Get any _1d variables that are associated with those dimensions. These will be useful in gridding. Also, if any dimension is "pft", set up to rename it and all like-named variables to "patch"
         onedVars = []
-        pft2patch_dict = {}
         for thisDim in dimList:
             pattern = re.compile(f"{thisDim}.*1d")
             matches = [x for x in list(ds.keys()) if pattern.search(x) != None]
             onedVars = list(set(onedVars + matches))
-            if thisDim == "pft":
-                pft2patch_dict["pft"] = "patch"
-                for m in matches:
-                    pft2patch_dict[m] = m.replace("pft","patch").replace("patchs","patches")
         
         # Add dimensions and _1d variables to vars_to_import
         vars_to_import = list(set(vars_to_import \
@@ -513,10 +517,6 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
 
         # Drop them
         ds = ds.drop_vars(vars_to_drop)
-
-    # Rename "pft" dimension and variables to "patch", if needed
-    if len(pft2patch_dict) > 0:
-        ds = ds.rename(pft2patch_dict)
     
     # Add vegetation type info
     if "patches1d_itype_veg" in list(ds):
