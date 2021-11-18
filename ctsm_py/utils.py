@@ -440,16 +440,21 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, **kwargs)
             else:
                 this_type = type(selection)
             
-            # Perform selection
             if this_type == int:
+                selection_type = "indices"
+            else:
+                selection_type = "values"
+            
+            # Perform selection
+            if selection_type == "indices":
                 # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
                 if isinstance(selection, int):
                     selection = slice(selection,selection+1)
                 xr_object = xr_object.isel({key: selection})
-            elif this_type == str:
+            elif selection_type == "values":
                 xr_object = xr_object.sel({key: selection})
             else:
-                raise TypeError(f"Selection must be type int, str, or slice of those (not {type(selection)})")
+                raise TypeError(f"selection_type {selection_type} not recognized")
     
     return xr_object
 
