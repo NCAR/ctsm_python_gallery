@@ -394,62 +394,62 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, **kwargs)
             if key not in ["time", "vegtype"]:
                 raise ValueError(f"xr_flexsel() only tested with time and vegtype. To run with unsupported dimensions like {key}, specify unsupported=True.")
     
-    for key, value in kwargs.items():
+    for key, selection in kwargs.items():
 
         if key == "vegtype":
 
             # Convert to list, if needed
-            if not isinstance(value, list):
-                value = [value]
+            if not isinstance(selection, list):
+                selection = [selection]
             
             # Convert to indices, if needed
-            if isinstance(value[0], str):
-                value = vegtype_str2int(value)
+            if isinstance(selection[0], str):
+                selection = vegtype_str2int(selection)
             
             # Get list of boolean(s)
-            if isinstance(value[0], int):
+            if isinstance(selection[0], int):
                 if isinstance(patches1d_itype_veg, type(None)):
                     patches1d_itype_veg = xr_object.patches1d_itype_veg.values
                 elif isinstance(patches1d_itype_veg, xr.core.dataarray.DataArray):
                     patches1d_itype_veg = patches1d_itype_veg.values
-                is_vegtype = is_each_vegtype(patches1d_itype_veg, value, "ok_exact")
-            elif isinstance(value[0], bool):
-                if len(value) != len(xr_object.patch):
-                    raise ValueError(f"If providing boolean 'vegtype' argument to xr_flexsel(), it must be the same length as xr_object.patch ({len(value)} vs. {len(xr_object.patch)})")
-                is_vegtype = value
+                is_vegtype = is_each_vegtype(patches1d_itype_veg, selection, "ok_exact")
+            elif isinstance(selection[0], bool):
+                if len(selection) != len(xr_object.patch):
+                    raise ValueError(f"If providing boolean 'vegtype' argument to xr_flexsel(), it must be the same length as xr_object.patch ({len(selection)} vs. {len(xr_object.patch)})")
+                is_vegtype = selection
             else:
-                raise TypeError(f"Not sure how to handle 'vegtype' of type {type(value)}")
+                raise TypeError(f"Not sure how to handle 'vegtype' of type {type(selection)}")
             xr_object = xr_object.isel(patch=[i for i, x in enumerate(is_vegtype) if x])
             if "ivt" in xr_object:
-                xr_object = xr_object.isel(ivt=is_each_vegtype(xr_object.ivt.values, value, "ok_exact"))
+                xr_object = xr_object.isel(ivt=is_each_vegtype(xr_object.ivt.values, selection, "ok_exact"))
         
         else:
             
             # Check type of selection
-            if isinstance(value, slice):
-                if value == slice(0):
+            if isinstance(selection, slice):
+                if selection == slice(0):
                     raise ValueError("slice(0) will be empty")
-                elif value.start != None:
-                    this_type = type(value.start)
-                elif value.stop != None:
-                    this_type = type(value.stop)
-                elif value.step != None:
-                    this_type = type(value.step)
+                elif selection.start != None:
+                    this_type = type(selection.start)
+                elif selection.stop != None:
+                    this_type = type(selection.stop)
+                elif selection.step != None:
+                    this_type = type(selection.step)
                 else:
                     raise TypeError("slice is all None?")
             else:
-                this_type = type(value)
+                this_type = type(selection)
             
             # Perform selection
             if this_type == int:
                 # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
-                if isinstance(value, int):
-                    value = slice(value,value+1)
-                xr_object = xr_object.isel({key: value})
+                if isinstance(selection, int):
+                    selection = slice(selection,selection+1)
+                xr_object = xr_object.isel({key: selection})
             elif this_type == str:
-                xr_object = xr_object.sel({key: value})
+                xr_object = xr_object.sel({key: selection})
             else:
-                raise TypeError(f"Selection must be type int, str, or slice of those (not {type(value)})")
+                raise TypeError(f"Selection must be type int, str, or slice of those (not {type(selection)})")
     
     return xr_object
 
