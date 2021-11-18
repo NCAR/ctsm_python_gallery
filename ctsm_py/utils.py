@@ -385,24 +385,6 @@ def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
     indices = [ ind_dict[x] for x in inter ]
     return indices
 
-# Check the type of a selection. Used in xr_flexsel(). This function ended up only being used once there, but keep it separate anyway to avoid having to re-do it in the future.
-def check_sel_type(this_sel):
-    if isinstance(this_sel, slice):
-        if this_sel == slice(0):
-            raise ValueError("slice(0) will be empty")
-        elif this_sel.start != None:
-            this_type = type(this_sel.start)
-        elif this_sel.stop != None:
-            this_type = type(this_sel.stop)
-        elif this_sel.step != None:
-            this_type = type(this_sel.step)
-        else:
-            raise TypeError("slice is all None?")
-    else:
-        this_type = type(this_sel)
-    return this_type
-
-
 # Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size.
 def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, **kwargs):
     
@@ -442,7 +424,23 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, **kwargs)
                 xr_object = xr_object.isel(ivt=is_each_vegtype(xr_object.ivt.values, value, "ok_exact"))
         
         else:
-            this_type = check_sel_type(value)
+            
+            # Check type of selection
+            if isinstance(value, slice):
+                if value == slice(0):
+                    raise ValueError("slice(0) will be empty")
+                elif value.start != None:
+                    this_type = type(value.start)
+                elif value.stop != None:
+                    this_type = type(value.stop)
+                elif value.step != None:
+                    this_type = type(value.step)
+                else:
+                    raise TypeError("slice is all None?")
+            else:
+                this_type = type(value)
+            
+            # Perform selection
             if this_type == int:
                 # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
                 if isinstance(value, int):
