@@ -391,15 +391,16 @@ def check_sel_type(this_sel):
         if this_sel == slice(0):
             raise ValueError("slice(0) will be empty")
         elif this_sel.start != None:
-            return type(this_sel.start)
+            this_type = type(this_sel.start)
         elif this_sel.stop != None:
-            return type(this_sel.stop)
+            this_type = type(this_sel.stop)
         elif this_sel.step != None:
-            return type(this_sel.step)
+            this_type = type(this_sel.step)
         else:
             raise TypeError("slice is all None?")
     else:
-        return type(this_sel)
+        this_type = type(this_sel)
+    return this_type
 
 
 # Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size.
