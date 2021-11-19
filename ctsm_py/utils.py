@@ -386,14 +386,20 @@ def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
     return indices
 
 # Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size.
-def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, **kwargs):
+def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, warn_about_seltype_interp=True, **kwargs):
+    
+    # Setup
+    havewarned = False
+    delimiter = "__"
     
     # For now, only time and vegtype selections are supported
     if not unsupported:
         for key in kwargs.keys():
+            if delimiter in key:
+                key = key.split(delimiter)[0]
             if key not in ["time", "vegtype"]:
                 raise ValueError(f"xr_flexsel() only tested with time and vegtype. To run with unsupported dimensions like {key}, specify unsupported=True.")
-    
+        
     for key, selection in kwargs.items():
 
         if key == "vegtype":
@@ -425,25 +431,39 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, **kwargs)
         
         else:
             
+            # Parse selection type, if provided
+            if delimiter in key:
+                key, selection_type = key.split(delimiter)
+                
             # Check type of selection
-            if isinstance(selection, slice):
-                if selection == slice(0):
-                    raise ValueError("slice(0) will be empty")
-                elif selection.start != None:
-                    this_type = type(selection.start)
-                elif selection.stop != None:
-                    this_type = type(selection.stop)
-                elif selection.step != None:
-                    this_type = type(selection.step)
+            else:
+                
+                # Suggest suppressing selection type interpretation warnings
+                if warn_about_seltype_interp and not havewarned:
+                    print("xr_flexsel(): Suppress all 'selection type interpretation' messages by specifying warn_about_seltype_interp=False")
+                    havewarned = False
+                
+                if isinstance(selection, slice):
+                    if selection == slice(0):
+                        raise ValueError("slice(0) will be empty")
+                    elif selection.start != None:
+                        this_type = type(selection.start)
+                    elif selection.stop != None:
+                        this_type = type(selection.stop)
+                    elif selection.step != None:
+                        this_type = type(selection.step)
+                    else:
+                        raise TypeError("slice is all None?")
                 else:
-                    raise TypeError("slice is all None?")
-            else:
-                this_type = type(selection)
-            
-            if this_type == int:
-                selection_type = "indices"
-            else:
-                selection_type = "values"
+                    this_type = type(selection)
+                
+                if this_type == int:
+                    selection_type = "indices"
+                else:
+                    selection_type = "values"
+                
+                if warn_about_seltype_interp:
+                    print(f"xr_flexsel(): Selecting {key} as {selection_type} because selection was interpreted as {this_type}. If not correct, specify selection type ('indices' or 'values') in keyword like '{key}{delimiter}SELECTIONTYPE=...' instead of '{key}=...'")
             
             # Perform selection
             if selection_type == "indices":
