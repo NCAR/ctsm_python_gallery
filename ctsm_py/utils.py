@@ -385,72 +385,144 @@ def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
     indices = [ ind_dict[x] for x in inter ]
     return indices
 
-# Check the type of a selection. Used in xr_flexsel(). This function ended up only being used once there, but keep it separate anyway to avoid having to re-do it in the future.
-def check_sel_type(this_sel):
-    if isinstance(this_sel, slice):
-        if this_sel == slice(0):
-            raise ValueError("slice(0) will be empty")
-        elif this_sel.start != None:
-            return type(this_sel.start)
-        elif this_sel.stop != None:
-            return type(this_sel.stop)
-        elif this_sel.step != None:
-            return type(this_sel.step)
-        else:
-            raise TypeError("slice is all None?")
-    else:
-        return type(this_sel)
-
-
 # Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size.
-def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, **kwargs):
+def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=True, **kwargs):
     
-    # For now, only time and vegtype selections are supported
-    if not unsupported:
-        for key in kwargs.keys():
-            if key not in ["time", "vegtype"]:
-                raise ValueError(f"xr_flexsel() only tested with time and vegtype. To run with unsupported dimensions like {key}, specify unsupported=True.")
+    # Setup
+    havewarned = False
+    delimiter = "__"
     
-    for key, value in kwargs.items():
+    for key, selection in kwargs.items():
 
         if key == "vegtype":
 
             # Convert to list, if needed
-            if not isinstance(value, list):
-                value = [value]
+            if not isinstance(selection, list):
+                selection = [selection]
             
             # Convert to indices, if needed
-            if isinstance(value[0], str):
-                value = vegtype_str2int(value)
+            if isinstance(selection[0], str):
+                selection = vegtype_str2int(selection)
             
             # Get list of boolean(s)
-            if isinstance(value[0], int):
+            if isinstance(selection[0], int):
                 if isinstance(patches1d_itype_veg, type(None)):
                     patches1d_itype_veg = xr_object.patches1d_itype_veg.values
                 elif isinstance(patches1d_itype_veg, xr.core.dataarray.DataArray):
                     patches1d_itype_veg = patches1d_itype_veg.values
-                is_vegtype = is_each_vegtype(patches1d_itype_veg, value, "ok_exact")
-            elif isinstance(value[0], bool):
-                if len(value) != len(xr_object.patch):
-                    raise ValueError(f"If providing boolean 'vegtype' argument to xr_flexsel(), it must be the same length as xr_object.patch ({len(value)} vs. {len(xr_object.patch)})")
-                is_vegtype = value
+                is_vegtype = is_each_vegtype(patches1d_itype_veg, selection, "ok_exact")
+            elif isinstance(selection[0], bool):
+                if len(selection) != len(xr_object.patch):
+                    raise ValueError(f"If providing boolean 'vegtype' argument to xr_flexsel(), it must be the same length as xr_object.patch ({len(selection)} vs. {len(xr_object.patch)})")
+                is_vegtype = selection
             else:
-                raise TypeError(f"Not sure how to handle 'vegtype' of type {type(value)}")
+                raise TypeError(f"Not sure how to handle 'vegtype' of type {type(selection)}")
             xr_object = xr_object.isel(patch=[i for i, x in enumerate(is_vegtype) if x])
             if "ivt" in xr_object:
-                xr_object = xr_object.isel(ivt=is_each_vegtype(xr_object.ivt.values, value, "ok_exact"))
+                xr_object = xr_object.isel(ivt=is_each_vegtype(xr_object.ivt.values, selection, "ok_exact"))
         
         else:
-            this_type = check_sel_type(value)
-            if this_type == int:
-                # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
-                if isinstance(value, int):
-                    value = slice(value,value+1)
-                xr_object = xr_object.isel({key: value})
-            elif this_type == str:
-                xr_object = xr_object.sel({key: value})
+            
+            # Parse selection type, if provided
+            if delimiter in key:
+                key, selection_type = key.split(delimiter)
+                
+            # Check type of selection
             else:
-                raise TypeError(f"Selection must be type int, str, or slice of those (not {type(value)})")
+                
+                # Suggest suppressing selection type interpretation warnings
+                if warn_about_seltype_interp and not havewarned:
+                    print("xr_flexsel(): Suppress all 'selection type interpretation' messages by specifying warn_about_seltype_interp=False")
+                    havewarned = False
+                
+                is_inefficient = False
+                if isinstance(selection, slice):
+                    if selection == slice(0):
+                        raise ValueError("slice(0) will be empty")
+                    elif selection.start != None:
+                        this_type = type(selection.start)
+                    elif selection.stop != None:
+                        this_type = type(selection.stop)
+                    elif selection.step != None:
+                        this_type = type(selection.step)
+                    else:
+                        raise TypeError("slice is all None?")
+                elif isinstance(selection, np.ndarray):
+                    if selection.dtype.kind in np.typecodes["AllInteger"]:
+                        this_type = int
+                    else:
+                        is_inefficient = True
+                        this_type = None
+                        for x in selection:
+                            if x%1 > 0:
+                                this_type = type(x)
+                        if this_type==None:
+                            this_type = int
+                            selection = selection.astype(int)
+                else:
+                    this_type = type(selection)
+                
+                print(f"this_type: {this_type}")
+                if this_type == int:
+                    selection_type = "indices"
+                else:
+                    selection_type = "values"
+                
+                if warn_about_seltype_interp:
+                    if is_inefficient:
+                        extra =  " This will also improve efficiency for large selections."
+                    else:
+                        extra = ""
+                    print(f"xr_flexsel(): Selecting {key} as {selection_type} because selection was interpreted as {this_type}. If not correct, specify selection type ('indices' or 'values') in keyword like '{key}{delimiter}SELECTIONTYPE=...' instead of '{key}=...'.{extra}")
+                    
+            # Trim along relevant 1d axes
+            if isinstance(xr_object, xr.Dataset) and key in ["lat","lon"]:
+                if selection_type == "indices":
+                    inclCoords = xr_object[key].values[selection]
+                elif selection_type == "values":
+                    inclCoords = selection
+                else:
+                    raise TypeError(f"selection_type {selection_type} not recognized")                    
+                if key == "lat":
+                    thisXY = "jxy"
+                elif key=="lon":
+                    thisXY = "ixy"
+                else:
+                    raise KeyError(f"Key '{key}' not recognized: What 1d_ suffix should I use for variable name?")
+                pattern = re.compile(f"1d_{thisXY}")
+                matches = [x for x in list(xr_object.keys()) if pattern.search(x) != None]
+                for thisVar in matches:
+                    if len(xr_object[thisVar].dims) != 1:
+                        raise RuntimeError(f"Expected {thisVar} to have 1 dimension, but it has {len(xr_object[thisVar].dims)}: {xr_object[thisVar].dims}")
+                    thisVar_dim = xr_object[thisVar].dims[0]
+                    # print(f"Variable {thisVar} has dimension {thisVar_dim}")
+                    thisVar_coords = xr_object[key].values[xr_object[thisVar].values.astype(int)-1]
+                    # print(f"{thisVar_dim} size before: {xr_object.sizes[thisVar_dim]}")
+                    ok_ind = []
+                    new_1d_thisXY = []
+                    for i, x in enumerate(thisVar_coords):
+                        if x in inclCoords:
+                           ok_ind = ok_ind + [i]
+                           new_1d_thisXY = new_1d_thisXY + [(inclCoords==x).nonzero()[0] + 1]
+                    xr_object = xr_object.isel({thisVar_dim: ok_ind})
+                    new_1d_thisXY = np.array(new_1d_thisXY).squeeze()
+                    xr_object[thisVar].values = new_1d_thisXY
+                    # print(f"{thisVar_dim} size after: {xr_object.sizes[thisVar_dim]}")
+
+            
+            # Perform selection
+            if selection_type == "indices":
+                # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
+                if isinstance(selection, int):
+                    # Single integer? Turn it into a slice.
+                    selection = slice(selection,selection+1)
+                elif isinstance(selection, np.ndarray) and not selection.dtype.kind in np.typecodes["AllInteger"]:
+                    selection = selection.astype(int)
+                xr_object = xr_object.isel({key: selection})
+            elif selection_type == "values":
+                xr_object = xr_object.sel({key: selection})
+            else:
+                raise TypeError(f"selection_type {selection_type} not recognized")
     
     return xr_object
 
@@ -483,6 +555,15 @@ def get_vegtype_str_da(vegtype_str):
 # Function to drop unwanted variables in preprocessing of open_mfdataset(), making sure to NOT drop any unspecified variables that will be useful in gridding. Also adds vegetation type info in the form of a DataArray of strings.
 # Also renames "pft" dimension (and all like-named variables, e.g., pft1d_itype_veg_str) to be named like "patch". This can later be reversed, for compatibility with other code, using patch2pft().
 def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
+    
+    # Rename "pft" dimension and variables to "patch", if needed
+    if "pft" in ds.dims:
+        pattern = re.compile("pft.*1d")
+        matches = [x for x in list(ds.keys()) if pattern.search(x) != None]
+        pft2patch_dict = {"pft": "patch"}
+        for m in matches:
+            pft2patch_dict[m] = m.replace("pft","patch").replace("patchs","patches")
+        ds = ds.rename(pft2patch_dict)
 
     if vars_to_import != None:
         # Get list of dimensions present in variables in vars_to_import.
@@ -493,15 +574,10 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
         
         # Get any _1d variables that are associated with those dimensions. These will be useful in gridding. Also, if any dimension is "pft", set up to rename it and all like-named variables to "patch"
         onedVars = []
-        pft2patch_dict = {}
         for thisDim in dimList:
             pattern = re.compile(f"{thisDim}.*1d")
             matches = [x for x in list(ds.keys()) if pattern.search(x) != None]
             onedVars = list(set(onedVars + matches))
-            if thisDim == "pft":
-                pft2patch_dict["pft"] = "patch"
-                for m in matches:
-                    pft2patch_dict[m] = m.replace("pft","patch").replace("patchs","patches")
         
         # Add dimensions and _1d variables to vars_to_import
         vars_to_import = list(set(vars_to_import \
@@ -513,10 +589,6 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
 
         # Drop them
         ds = ds.drop_vars(vars_to_drop)
-
-    # Rename "pft" dimension and variables to "patch", if needed
-    if len(pft2patch_dict) > 0:
-        ds = ds.rename(pft2patch_dict)
     
     # Add vegetation type info
     if "patches1d_itype_veg" in list(ds):
@@ -636,12 +708,10 @@ def trim_da_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
 
 
 # Make a geographically gridded DataArray (with dimensions time, vegetation type [as string], lat, lon) of one variable within a Dataset. Optional keyword arguments will be passed to xr_flexsel() to select single steps or slices along the specified ax(ie)s.
-# SSR TODO: IN PROGRESS: Allow for flexible input and output dimensions.
-def grid_one_variable(this_ds, thisVar, unsupported=False, **kwargs):
+def grid_one_variable(this_ds, thisVar, **kwargs):
     
     # Get this Dataset's values for selection(s), if provided
     this_ds = xr_flexsel(this_ds, \
-        unsupported=unsupported,
         **kwargs)
     
     # Get DataArrays needed for gridding
@@ -657,9 +727,12 @@ def grid_one_variable(this_ds, thisVar, unsupported=False, **kwargs):
     
     # Get new dimension list
     new_dims = list(thisvar_da.dims)
-    ### Replace "patch" with "ivt_str" (vegetation type, as string)
+    ### Remove "patch".
     if "patch" in new_dims:
-        new_dims = ["ivt_str" if x == "patch" else x for x in new_dims]
+        new_dims.remove("patch")
+    #  Add "ivt_str" (vegetation type, as string). This needs to go at the end, to avoid a possible situation where you wind up with multiple Ellipsis members of fill_indices.
+    if "ivt" in this_ds:
+        new_dims.append("ivt_str")
     ### Add lat and lon to end of list
     new_dims = new_dims + ["lat", "lon"]
 
@@ -677,12 +750,18 @@ def grid_one_variable(this_ds, thisVar, unsupported=False, **kwargs):
     thisvar_gridded[:] = np.NaN
 
     # Fill with this variable
-    if new_dims != ['time', 'ivt_str', 'lat', 'lon']:
-        raise ValueError("For now, grid_one_variable() only works with output dimensions ['time', 'ivt_str', 'lat', 'lon']")
-    thisvar_gridded[:,
-        vt_da, 
-        jxy_da.values.astype(int) - 1, 
-        ixy_da.values.astype(int) - 1] = thisvar_da.values
+    fill_indices = []
+    for dim in new_dims:
+        if dim == "lat":
+            fill_indices.append(jxy_da.values.astype(int) - 1)
+        elif dim == "lon":
+            fill_indices.append(ixy_da.values.astype(int) - 1)
+        elif dim == "ivt_str":
+            fill_indices.append(vt_da)
+        elif not fill_indices:
+        # I.e., if fill_indices is empty. Could also do "elif len(fill_indices)==0".
+            fill_indices.append(Ellipsis)
+    thisvar_gridded[tuple(fill_indices[:len(fill_indices)])] = thisvar_da.values
     if not np.any(np.bitwise_not(np.isnan(thisvar_gridded))):
         raise RuntimeError("thisvar_gridded was not filled! (Or was filled with just NaN)")
 
