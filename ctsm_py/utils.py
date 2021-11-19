@@ -482,6 +482,34 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, warn_abou
                     else:
                         extra = ""
                     print(f"xr_flexsel(): Selecting {key} as {selection_type} because selection was interpreted as {this_type}. If not correct, specify selection type ('indices' or 'values') in keyword like '{key}{delimiter}SELECTIONTYPE=...' instead of '{key}=...'.{extra}")
+                    
+            # Trim along relevant 1d axes
+            if isinstance(xr_object, xr.Dataset) and key in ["lat","lon"]:
+                if selection_type == "indices":
+                    inclCoords = xr_object[key].values[selection]
+                elif selection_type == "values":
+                    inclCoords = selection
+                else:
+                    raise TypeError(f"selection_type {selection_type} not recognized")                    
+                if key == "lat":
+                    thisXY = "jxy"
+                elif key=="lon":
+                    thisXY = "ixy"
+                else:
+                    raise KeyError(f"Key '{key}' not recognized: What 1d_ suffix should I use for variable name?")
+                pattern = re.compile(f"1d_{thisXY}")
+                matches = [x for x in list(xr_object.keys()) if pattern.search(x) != None]
+                for thisVar in matches:
+                    if len(xr_object[thisVar].dims) != 1:
+                        raise RuntimeError(f"Expected {thisVar} to have 1 dimension, but it has {len(xr_object[thisVar].dims)}: {xr_object[thisVar].dims}")
+                    thisVar_dim = xr_object[thisVar].dims[0]
+                    # print(f"Variable {thisVar} has dimension {thisVar_dim}")
+                    thisVar_coords = xr_object[key].values[xr_object[thisVar].values.astype(int)-1]
+                    ok_ind = [i for i, x in enumerate(thisVar_coords) if x in inclCoords]
+                    # print(f"{thisVar_dim} size before: {xr_object.sizes[thisVar_dim]}")
+                    xr_object = xr_object.isel({thisVar_dim: ok_ind})
+                    # print(f"{thisVar_dim} size after: {xr_object.sizes[thisVar_dim]}")
+
             
             # Perform selection
             if selection_type == "indices":
