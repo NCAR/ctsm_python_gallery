@@ -443,6 +443,7 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, warn_abou
                     print("xr_flexsel(): Suppress all 'selection type interpretation' messages by specifying warn_about_seltype_interp=False")
                     havewarned = False
                 
+                is_inefficient = False
                 if isinstance(selection, slice):
                     if selection == slice(0):
                         raise ValueError("slice(0) will be empty")
@@ -454,22 +455,42 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, warn_abou
                         this_type = type(selection.step)
                     else:
                         raise TypeError("slice is all None?")
+                elif isinstance(selection, np.ndarray):
+                    if selection.dtype.kind in np.typecodes["AllInteger"]:
+                        this_type = int
+                    else:
+                        is_inefficient = True
+                        this_type = None
+                        for x in selection:
+                            if x%1 > 0:
+                                this_type = type(x)
+                        if this_type==None:
+                            this_type = int
+                            selection = selection.astype(int)
                 else:
                     this_type = type(selection)
                 
+                print(f"this_type: {this_type}")
                 if this_type == int:
                     selection_type = "indices"
                 else:
                     selection_type = "values"
                 
                 if warn_about_seltype_interp:
-                    print(f"xr_flexsel(): Selecting {key} as {selection_type} because selection was interpreted as {this_type}. If not correct, specify selection type ('indices' or 'values') in keyword like '{key}{delimiter}SELECTIONTYPE=...' instead of '{key}=...'")
+                    if is_inefficient:
+                        extra =  " This will also improve efficiency for large selections."
+                    else:
+                        extra = ""
+                    print(f"xr_flexsel(): Selecting {key} as {selection_type} because selection was interpreted as {this_type}. If not correct, specify selection type ('indices' or 'values') in keyword like '{key}{delimiter}SELECTIONTYPE=...' instead of '{key}=...'.{extra}")
             
             # Perform selection
             if selection_type == "indices":
                 # Have to select like this instead of with index directly because otherwise assign_coords() will throw an error. Not sure why.
                 if isinstance(selection, int):
+                    # Single integer? Turn it into a slice.
                     selection = slice(selection,selection+1)
+                elif isinstance(selection, np.ndarray) and not selection.dtype.kind in np.typecodes["AllInteger"]:
+                    selection = selection.astype(int)
                 xr_object = xr_object.isel({key: selection})
             elif selection_type == "values":
                 xr_object = xr_object.sel({key: selection})
