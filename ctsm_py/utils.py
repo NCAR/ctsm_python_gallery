@@ -505,9 +505,16 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, unsupported=False, warn_abou
                     thisVar_dim = xr_object[thisVar].dims[0]
                     # print(f"Variable {thisVar} has dimension {thisVar_dim}")
                     thisVar_coords = xr_object[key].values[xr_object[thisVar].values.astype(int)-1]
-                    ok_ind = [i for i, x in enumerate(thisVar_coords) if x in inclCoords]
                     # print(f"{thisVar_dim} size before: {xr_object.sizes[thisVar_dim]}")
+                    ok_ind = []
+                    new_1d_thisXY = []
+                    for i, x in enumerate(thisVar_coords):
+                        if x in inclCoords:
+                           ok_ind = ok_ind + [i]
+                           new_1d_thisXY = new_1d_thisXY + [(inclCoords==x).nonzero()[0] + 1]
                     xr_object = xr_object.isel({thisVar_dim: ok_ind})
+                    new_1d_thisXY = np.array(new_1d_thisXY).squeeze()
+                    xr_object[thisVar].values = new_1d_thisXY
                     # print(f"{thisVar_dim} size after: {xr_object.sizes[thisVar_dim]}")
 
             
