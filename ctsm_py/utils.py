@@ -437,16 +437,22 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
                 
                 is_inefficient = False
                 if isinstance(selection, slice):
+                    slice_members = []
                     if selection == slice(0):
                         raise ValueError("slice(0) will be empty")
-                    elif selection.start != None:
-                        this_type = type(selection.start)
-                    elif selection.stop != None:
-                        this_type = type(selection.stop)
-                    elif selection.step != None:
-                        this_type = type(selection.step)
-                    else:
+                    if selection.start != None:
+                        slice_members = slice_members + [selection.start]
+                    if selection.stop != None:
+                        slice_members = slice_members + [selection.stop]
+                    if selection.step != None:
+                        slice_members = slice_members + [selection.step]
+                    if slice_members==[]:
                         raise TypeError("slice is all None?")
+                    this_type = int
+                    for x in slice_members:
+                        if x < 0 or not isinstance(x, int):
+                            this_type = "values"
+                            break
                 elif isinstance(selection, np.ndarray):
                     if selection.dtype.kind in np.typecodes["AllInteger"]:
                         this_type = int
@@ -480,7 +486,10 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
                 if selection_type == "indices":
                     inclCoords = xr_object[key].values[selection]
                 elif selection_type == "values":
-                    inclCoords = selection
+                    if isinstance(selection, slice):
+                        inclCoords = xr_object.sel({key: selection}, drop=False)[key].values
+                    else:
+                        inclCoords = selection
                 else:
                     raise TypeError(f"selection_type {selection_type} not recognized")                    
                 if key == "lat":
