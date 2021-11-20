@@ -461,7 +461,11 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
                         this_type = None
                         for x in selection:
                             if x < 0 or x%1 > 0:
-                                this_type = type(x)
+                                if isinstance(x, int):
+                                    this_type = "values"
+                                else:
+                                    this_type = type(x)
+                                break
                         if this_type==None:
                             this_type = int
                             selection = selection.astype(int)
