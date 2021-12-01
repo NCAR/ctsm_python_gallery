@@ -322,7 +322,7 @@ def is_each_vegtype(this_vegtypelist, this_filter, this_method):
     return [is_this_vegtype(x, this_filter, this_method) for x in this_vegtypelist]
 
 
-# Convert a latitude axis that's -180 to 180 around the international date line to one that's 0 to 360 around the prime meridian. If you pass in a Dataset or DataArray, the "lon" coordinates will be changed. Otherwise, it assumes you're passing in numeric data.
+# Convert a longitude axis that's -180 to 180 around the international date line to one that's 0 to 360 around the prime meridian. If you pass in a Dataset or DataArray, the "lon" coordinates will be changed. Otherwise, it assumes you're passing in numeric data.
 def lon_idl2pm(lons_in):
     def do_it(tmp):
         if np.any(tmp > 180):
@@ -341,7 +341,7 @@ def lon_idl2pm(lons_in):
     return lons_out
 
 
-# Convert a latitude axis that's 0 to 360 around the prime meridian to one that's -180 to 180 around the international date line. If you pass in a Dataset or DataArray, the "lon" coordinates will be changed. Otherwise, this assumes you're passing in numeric data.
+# Convert a longitude axis that's 0 to 360 around the prime meridian to one that's -180 to 180 around the international date line. If you pass in a Dataset or DataArray, the "lon" coordinates will be changed. Otherwise, this assumes you're passing in numeric data.
 def lon_pm2idl(lons_in):
     def do_it(tmp):
         if np.any(tmp < 0):
