@@ -334,7 +334,7 @@ def lon_idl2pm(lons_in):
         return tmp
     if isinstance(lons_in, (xr.DataArray, xr.Dataset)):
         lons_out = lons_in
-        lons_out['lon'] = do_it(lons_in.lon.values)
+        lons_out = lons_out.assign_coords(lon=do_it(lons_in.lon.values))
     else:
         lons_out = do_it(lons_in)
         
@@ -352,7 +352,7 @@ def lon_pm2idl(lons_in):
         return tmp
     if isinstance(lons_in, (xr.DataArray, xr.Dataset)):
         lons_out = lons_in
-        lons_out['lon'] = do_it(lons_in.lon.values)
+        lons_out = lons_out.assign_coords(lon=do_it(lons_in.lon.values))
     else:
         lons_out = do_it(lons_in)
         
