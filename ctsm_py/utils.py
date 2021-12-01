@@ -322,6 +322,29 @@ def is_each_vegtype(this_vegtypelist, this_filter, this_method):
     return [is_this_vegtype(x, this_filter, this_method) for x in this_vegtypelist]
 
 
+# Ensure that longitude axis coordinates are monotonically increasing
+def make_lon_increasing(xr_obj):
+    if not "lon" in xr_obj.dims:
+        return xr_obj
+    
+    def is_strictly_increasing(L):
+        # https://stackoverflow.com/a/4983359/2965321
+        return all(x<y for x, y in zip(L, L[1:]))
+    
+    lons = xr_obj.lon.values
+    if is_strictly_increasing(lons):
+        return xr_obj
+    
+    shift = 0
+    while not is_strictly_increasing(lons) and shift < lons.size:
+        shift = shift + 1
+        lons = np.roll(lons, 1, axis=0)
+    if not is_strictly_increasing(lons):
+        raise RuntimeError("Unable to rearrange longitude axis so it's monotonically increasing")
+        
+    return xr_obj.roll(lon=shift, roll_coords=True)
+
+
 # Convert a longitude axis that's -180 to 180 around the international date line to one that's 0 to 360 around the prime meridian. If you pass in a Dataset or DataArray, the "lon" coordinates will be changed. Otherwise, it assumes you're passing in numeric data.
 def lon_idl2pm(lons_in):
     def do_it(tmp):
@@ -341,7 +364,7 @@ def lon_idl2pm(lons_in):
     return lons_out
 
 
-# Convert a longitude axis that's 0 to 360 around the prime meridian to one that's -180 to 180 around the international date line. If you pass in a Dataset or DataArray, the "lon" coordinates will be changed. Otherwise, this assumes you're passing in numeric data.
+# Convert a longitude axis that's 0 to 360 around the prime meridian to one that's -180 to 180 around the international date line. If you pass in a Dataset or DataArray, the "lon" coordinates will be changed and the axis and data rolled---i.e., maps will be centered on the prime meridian, plus or minus any offset of your gridcell centers. Otherwise, this assumes you're passing in numeric data, and no rolling takes place.
 def lon_pm2idl(lons_in):
     def do_it(tmp):
         if np.any(tmp < 0):
@@ -353,6 +376,7 @@ def lon_pm2idl(lons_in):
     if isinstance(lons_in, (xr.DataArray, xr.Dataset)):
         lons_out = lons_in
         lons_out = lons_out.assign_coords(lon=do_it(lons_in.lon.values))
+        lons_out = make_lon_increasing(lons_out)
     else:
         lons_out = do_it(lons_in)
         
