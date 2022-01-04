@@ -394,6 +394,10 @@ def define_mgdcrop_list():
 
 # Convert list of vegtype strings to integer index equivalents.
 def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
+    
+    if isinstance(vegtype_str, str):
+        vegtype_str = [vegtype_str]
+    
     if isinstance(vegtype_mainlist, xr.Dataset):
         vegtype_mainlist = vegtype_mainlist.vegtype_str.values
     elif isinstance(vegtype_mainlist, xr.DataArray):
