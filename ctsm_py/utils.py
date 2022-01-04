@@ -358,6 +358,7 @@ def lon_idl2pm(lons_in):
     if isinstance(lons_in, (xr.DataArray, xr.Dataset)):
         lons_out = lons_in
         lons_out = lons_out.assign_coords(lon=do_it(lons_in.lon.values))
+        lons_out = make_lon_increasing(lons_out)
     else:
         lons_out = do_it(lons_in)
         
