@@ -596,7 +596,7 @@ def get_vegtype_str_da(vegtype_str):
 
 # Function to drop unwanted variables in preprocessing of open_mfdataset(), making sure to NOT drop any unspecified variables that will be useful in gridding. Also adds vegetation type info in the form of a DataArray of strings.
 # Also renames "pft" dimension (and all like-named variables, e.g., pft1d_itype_veg_str) to be named like "patch". This can later be reversed, for compatibility with other code, using patch2pft().
-def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
+def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
     
     # Rename "pft" dimension and variables to "patch", if needed
     if "pft" in ds.dims:
@@ -649,6 +649,10 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import):
     # Restrict to veg. types of interest, if any
     if vegtypes_to_import != None:
         ds = xr_flexsel(ds, vegtype=vegtypes_to_import)
+    
+    # Restrict to time slice, if any
+    if timeSlice:
+        ds = ds.sel(time=timeSlice)
 
     # Finish import
     ds = xr.decode_cf(ds, decode_times = True)
@@ -680,8 +684,8 @@ def patch2pft(xr_object):
     return xr_object
 
 
-# Import a dataset that can be spread over multiple files, only including specified variables and/or vegetation types, concatenating by time. DOES actually read the dataset into memory, but only AFTER dropping unwanted variables and/or vegetation types.
-def import_ds(filelist, myVars=None, myVegtypes=None):
+# Import a dataset that can be spread over multiple files, only including specified variables and/or vegetation types and/or timesteps, concatenating by time. DOES actually read the dataset into memory, but only AFTER dropping unwanted variables and/or vegetation types.
+def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None):
 
     # Convert myVegtypes here, if needed, to avoid repeating the process each time you read a file in xr.open_mfdataset().
     if myVegtypes != None:
@@ -689,10 +693,29 @@ def import_ds(filelist, myVars=None, myVegtypes=None):
             myVegtypes = [myVegtypes]
         if isinstance(myVegtypes[0], str):
             myVegtypes = vegtype_str2int(myVegtypes)
+            
+    # Make sure filelist is actually a list
+    if not isinstance(filelist, list):
+        filelist = [filelist]
+            
+    # Remove files from list if they don't contain requested timesteps.
+    # timeSlice should be in the format slice(start,end[,step]). start or end can be None to be unbounded on one side. Note that the standard slice() documentation suggests that only elements through end-1 will be selected, but that seems not to be the case in the xarray implementation.
+    if timeSlice:
+        new_filelist = []
+        for file in sorted(filelist):
+            if xr.open_dataset(file).time.sel(time=timeSlice).size:
+                new_filelist.append(file)
+            
+             # If you found some matching files, but then you find one that doesn't, stop going through the list.
+            elif new_filelist:
+                break
+        if not new_filelist:
+            raise RuntimeError(f"No files found in timeSlice {timeSlice}")
+        filelist = new_filelist
 
     # The xarray open_mfdataset() "preprocess" argument requires a function that takes exactly one variable (an xarray.Dataset object). Wrapping mfdataset_preproc() in this lambda function allows this. Could also just allow mfdataset_preproc() to access myVars and myVegtypes directly, but that's bad practice as it could lead to scoping issues.
     mfdataset_preproc_closure = \
-        lambda ds: mfdataset_preproc(ds, myVars, myVegtypes)
+        lambda ds: mfdataset_preproc(ds, myVars, myVegtypes, timeSlice)
 
     # Import
     if isinstance(filelist, list):
@@ -701,7 +724,7 @@ def import_ds(filelist, myVars=None, myVegtypes=None):
             preprocess=mfdataset_preproc_closure)
     elif isinstance(filelist, str):
         this_ds = xr.open_dataset(filelist)
-        this_ds = mfdataset_preproc(this_ds, myVars, myVegtypes)
+        this_ds = mfdataset_preproc(this_ds, myVars, myVegtypes, timeSlice)
         this_ds = this_ds.compute()
     
     return this_ds
