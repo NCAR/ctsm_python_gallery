@@ -414,7 +414,7 @@ def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
     indices = [ ind_dict[x] for x in inter ]
     return indices
 
-# Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size.
+# Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size. Use dimension "vegtype" to extract patches of designated vegetation type (can be string or integer).
 def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=True, **kwargs):
     
     # Setup
