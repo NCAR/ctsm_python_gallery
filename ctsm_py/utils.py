@@ -774,7 +774,9 @@ def trim_da_to_mgd_crop(thisvar_da, patches1d_itype_veg_str):
 
 
 # Make a geographically gridded DataArray (with dimensions time, vegetation type [as string], lat, lon) of one variable within a Dataset. Optional keyword arguments will be passed to xr_flexsel() to select single steps or slices along the specified ax(ie)s.
-def grid_one_variable(this_ds, thisVar, **kwargs):
+#
+# fillValue: Default None means grid will be filled with NaN, unless the variable in question already has a fillValue, in which case that will be used.
+def grid_one_variable(this_ds, thisVar, fillValue=None, **kwargs):
     
     # Get this Dataset's values for selection(s), if provided
     this_ds = xr_flexsel(this_ds, \
@@ -785,6 +787,9 @@ def grid_one_variable(this_ds, thisVar, **kwargs):
     ixy_da = get_thisVar_da("patches1d_ixy", this_ds)
     jxy_da = get_thisVar_da("patches1d_jxy", this_ds)
     vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
+    
+    if not fillValue and "_FillValue" in thisvar_da.attrs:
+        fillValue = thisvar_da.attrs["_FillValue"]
     
     # Renumber vt_da to work as indices on new ivt dimension, if needed.
     ### Ensures that the unique set of vt_da values begins with 1 and
@@ -813,7 +818,10 @@ def grid_one_variable(this_ds, thisVar, **kwargs):
             n = this_ds.sizes[dim]
         n_list = n_list + [n]
     thisvar_gridded = np.empty(n_list)
-    thisvar_gridded[:] = np.NaN
+    if fillValue:
+        thisvar_gridded[:] = fillValue
+    else:
+        thisvar_gridded[:] = np.NaN
 
     # Fill with this variable
     fill_indices = []
@@ -844,6 +852,10 @@ def grid_one_variable(this_ds, thisVar, **kwargs):
             values = this_ds[dim].values
         thisvar_gridded = thisvar_gridded.assign_coords({dim: values})
     thisvar_gridded.name = thisVar
+    
+    # Add FillValue attribute
+    if fillValue:
+        thisvar_gridded.attrs["_FillValue"] = fillValue
 
     return thisvar_gridded
 
