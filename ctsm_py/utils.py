@@ -744,6 +744,7 @@ def get_thisVar_da(thisVar, this_ds):
     for thisDim in theseDims:
         dimsDict[thisDim] = this_ds[thisDim]
     thisvar_da = thisvar_da.assign_coords(dimsDict)
+    thisvar_da.attrs = this_ds[thisVar].attrs
 
     return thisvar_da
 
@@ -829,9 +830,11 @@ def grid_one_variable(this_ds, thisVar, **kwargs):
     thisvar_gridded[tuple(fill_indices[:len(fill_indices)])] = thisvar_da.values
     if not np.any(np.bitwise_not(np.isnan(thisvar_gridded))):
         raise RuntimeError("thisvar_gridded was not filled! (Or was filled with just NaN)")
-
-    # Assign coordinates and name
-    thisvar_gridded = xr.DataArray(thisvar_gridded, dims=tuple(new_dims))
+    
+    # Assign coordinates, attributes and name
+    thisvar_gridded = xr.DataArray(thisvar_gridded, \
+        dims=tuple(new_dims),
+        attrs=thisvar_da.attrs)
     for dim in new_dims:
         if dim == "ivt_str":
             values = this_ds.vegtype_str.values
