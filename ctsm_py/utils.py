@@ -624,7 +624,15 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
         # Add dimensions and _1d variables to vars_to_import
         vars_to_import = list(set(vars_to_import \
             + list(ds.dims) + onedVars))
-
+        
+        # Add any _bounds variables
+        bounds_vars = []
+        for v in vars_to_import:
+            bounds_var = v + "_bounds"
+            if bounds_var in ds:
+                bounds_vars = bounds_vars + [bounds_var]
+        vars_to_import = vars_to_import + bounds_vars
+        
         # Get list of variables to drop
         varlist = list(ds.variables)
         vars_to_drop = list(np.setdiff1d(varlist, vars_to_import))
