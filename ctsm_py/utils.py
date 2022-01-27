@@ -701,6 +701,11 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None):
             myVegtypes = [myVegtypes]
         if isinstance(myVegtypes[0], str):
             myVegtypes = vegtype_str2int(myVegtypes)
+    
+    # Same for myVars.
+    if myVars != None:
+        if not isinstance(myVars, list):
+            myVars = [myVars]
             
     # Make sure filelist is actually a list
     if not isinstance(filelist, list):
