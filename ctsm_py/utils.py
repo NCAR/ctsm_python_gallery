@@ -263,6 +263,39 @@ def define_pftlist():
     return pftlist
 
 
+# Get CLM ivt number corresponding to a given name
+def ivt_str2int(ivt_str):
+    
+    pftlist = define_pftlist()
+    if isinstance(ivt_str, str):
+        ivt_int = pftlist.index(ivt_str)
+    elif isinstance(ivt_str, list) or isinstance(ivt_str, np.ndarray):
+        ivt_int = [ivt_str2int(x) for x in ivt_str]
+        if isinstance(ivt_str, np.ndarray):
+            ivt_int = np.array(ivt_int)
+    else:
+        raise RuntimeError(f"Update ivt_str_to_int() to handle input of type {type(ivt_str)} (if possible)")
+    
+    return ivt_int
+
+# Get CLM ivt name corresponding to a given number
+def ivt_int2str(ivt_int):
+    
+    pftlist = define_pftlist()
+    if np.issubdtype(type(ivt_int), np.integer):
+        ivt_str = pftlist[ivt_int]
+    elif isinstance(ivt_int, list) or isinstance(ivt_int, np.ndarray):
+        ivt_str = [ivt_int2str(x) for x in ivt_int]
+        if isinstance(ivt_int, np.ndarray):
+            ivt_str = np.array(ivt_str)
+    elif isinstance(ivt_int, float):
+        raise RuntimeError("List indices must be integers")
+    else:
+        raise RuntimeError(f"Update ivt_str_to_int() to handle input of type {type(ivt_int)} (if possible)")
+    
+    return ivt_str
+
+
 # Does this vegetation type's name match (for a given comparison method) any member of a filtering list?
 '''
 Methods:
