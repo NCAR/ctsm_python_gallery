@@ -570,7 +570,7 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
 
 
 # Get PFT of each patch, in both integer and string forms.
-def ivt_int_str(this_ds, this_pftlist):
+def get_patch_ivts(this_ds, this_pftlist):
     # First, get all the integer values; should be time*pft or pft*time. We will eventually just take the first timestep.
     vegtype_int = this_ds.patches1d_itype_veg
     vegtype_int.values = vegtype_int.values.astype(int)
@@ -643,7 +643,7 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
     # Add vegetation type info
     if "patches1d_itype_veg" in list(ds):
         this_pftlist = define_pftlist()
-        ivt_int_str(ds, this_pftlist) # Includes check of whether vegtype changes over time anywhere
+        get_patch_ivts(ds, this_pftlist) # Includes check of whether vegtype changes over time anywhere
         vegtype_da = get_vegtype_str_da(this_pftlist)
         patches1d_itype_veg_str = vegtype_da.values[ds.isel(time=0).patches1d_itype_veg.values.astype(int)]
         npatch = len(patches1d_itype_veg_str)
