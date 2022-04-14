@@ -767,7 +767,9 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None):
     if isinstance(filelist, list):
         this_ds = xr.open_mfdataset(sorted(filelist), \
             data_vars="minimal", 
-            preprocess=mfdataset_preproc_closure)
+            preprocess=mfdataset_preproc_closure,
+            compat='override',
+            coords='all')
     elif isinstance(filelist, str):
         this_ds = xr.open_dataset(filelist)
         this_ds = mfdataset_preproc(this_ds, myVars, myVegtypes, timeSlice)
