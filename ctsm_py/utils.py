@@ -379,39 +379,70 @@ def make_lon_increasing(xr_obj):
 
 
 # Convert a longitude axis that's -180 to 180 around the international date line to one that's 0 to 360 around the prime meridian. If you pass in a Dataset or DataArray, the "lon" coordinates will be changed. Otherwise, it assumes you're passing in numeric data.
-def lon_idl2pm(lons_in):
-    def do_it(tmp):
+def lon_idl2pm(lons_in, fail_silently = False):
+    def check_ok(tmp, fail_silently):
+        msg = ""
+        
         if np.any(tmp > 180):
-            raise ValueError(f"Maximum longitude is already > 180 ({np.max(tmp)})")
+            msg = f"Maximum longitude is already > 180 ({np.max(tmp)})"
         elif np.any(tmp < -180):
-            raise ValueError(f"Minimum longitude is < -180 ({np.min(tmp)})")
+            msg = f"Minimum longitude is < -180 ({np.min(tmp)})"
+            
+        if msg == "":
+            return True
+        elif fail_silently:
+            return False
+        else:
+            raise ValueError(msg)
+            
+    def do_it(tmp):
         tmp = tmp + 360
         tmp = np.mod(tmp, 360)
         return tmp
+    
     if isinstance(lons_in, (xr.DataArray, xr.Dataset)):
+        if not check_ok(lons_in.lon.values, fail_silently):
+            return lons_in
         lons_out = lons_in
         lons_out = lons_out.assign_coords(lon=do_it(lons_in.lon.values))
         lons_out = make_lon_increasing(lons_out)
     else:
+        if not check_ok(lons_in, fail_silently):
+            return lons_in
         lons_out = do_it(lons_in)
         
     return lons_out
 
 
 # Convert a longitude axis that's 0 to 360 around the prime meridian to one that's -180 to 180 around the international date line. If you pass in a Dataset or DataArray, the "lon" coordinates will be changed and the axis and data rolled---i.e., maps will be centered on the prime meridian, plus or minus any offset of your gridcell centers. Otherwise, this assumes you're passing in numeric data, and no rolling takes place.
-def lon_pm2idl(lons_in):
-    def do_it(tmp):
+def lon_pm2idl(lons_in, fail_silently = False):
+    def check_ok(tmp, fail_silently):
+        msg = ""
         if np.any(tmp < 0):
-            raise ValueError(f"Minimum longitude is already < 0 ({np.min(tmp)})")
+            msg = f"Minimum longitude is already < 0 ({np.min(tmp)})"
         elif np.any(tmp > 360):
-            raise ValueError(f"Maximum longitude is > 360 ({np.max(tmp)})")
+            msg = f"Maximum longitude is > 360 ({np.max(tmp)})"
+        
+        if msg == "":
+            return True
+        elif fail_silently:
+            return False
+        else:
+            raise ValueError(msg)
+        
+    def do_it(tmp):
         tmp = np.mod((tmp + 180),360)-180
         return tmp
+    
     if isinstance(lons_in, (xr.DataArray, xr.Dataset)):
+        if not check_ok(lons_in.lon.values, fail_silently):
+            return lons_in
         lons_out = lons_in
         lons_out = lons_out.assign_coords(lon=do_it(lons_in.lon.values))
         lons_out = make_lon_increasing(lons_out)
     else:
+        if not check_ok(lons_in, fail_silently):
+            return lons_in
         lons_out = do_it(lons_in)
         
     return lons_out
