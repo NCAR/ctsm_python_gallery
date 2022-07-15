@@ -938,3 +938,44 @@ def grid_one_variable(this_ds, thisVar, fillValue=None, **kwargs):
 
     return thisvar_gridded
 
+
+# Xarray's native resampler is nice, but it will result in ALL variables being resampled
+# along the N specified dimension(s). This means that, e.g., variables that were
+# supposed to be 1d will be 1+Nd afterwards. This function undoes that. The syntax is the
+# same as for Xarray's resampler plus, at the beginning: 
+#    (1) which object you want to resample, and
+#    (2) the function you want to use for downsampling (e.g., "mean").
+def resample(ds_in, thefunction, **kwargs):
+    
+    # This problem is not applicable to DataArrays, so just use Xarray's resampler.
+    if isinstance(ds_in, xr.DataArray):
+        da_resampler = ds_in.resample(**kwargs)
+        da_out = getattr(da_resampler, thefunction)()
+        return da_out
+    
+    # Get the original dimensions of each variable
+    orig_dims = dict([(x, ds_in[x].dims) for x in ds_in])
+    
+    # Do the Xarray resampling
+    ds_resampler = ds_in.resample(**kwargs)
+    ds_out = getattr(ds_resampler, thefunction)()
+    
+    for v in ds_out:
+        
+        extra_dims = [d for d in ds_out[v].dims if d not in orig_dims[v]]
+        if not extra_dims:
+            print(f"Skipping {v}")
+            continue
+        
+        # Xarray's resampler for now only supports resampling along one
+        # dimension. However, I'm going to try and support a future
+        # version that supports an arbitrary number of resampled dimensions;
+        # this is, of course, untested.
+        
+        # For any newly-created dimensions, select the first value. Should
+        # Be the same as all other values.
+        indexers = dict([(d,0) for d in extra_dims])
+
+        ds_out[v] = ds_out[v].isel(**indexers, drop=True)
+    
+    return ds_out
