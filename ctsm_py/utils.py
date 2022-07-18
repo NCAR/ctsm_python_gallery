@@ -354,15 +354,15 @@ def is_this_vegtype(this_vegtype, this_filter, this_method):
 def is_each_vegtype(this_vegtypelist, this_filter, this_method):
     return [is_this_vegtype(x, this_filter, this_method) for x in this_vegtypelist]
 
+# Helper function to check that a list is strictly increasing
+def is_strictly_increasing(L):
+    # https://stackoverflow.com/a/4983359/2965321
+    return all(x<y for x, y in zip(L, L[1:]))
 
 # Ensure that longitude axis coordinates are monotonically increasing
 def make_lon_increasing(xr_obj):
     if not "lon" in xr_obj.dims:
         return xr_obj
-    
-    def is_strictly_increasing(L):
-        # https://stackoverflow.com/a/4983359/2965321
-        return all(x<y for x, y in zip(L, L[1:]))
     
     lons = xr_obj.lon.values
     if is_strictly_increasing(lons):
@@ -410,6 +410,9 @@ def lon_idl2pm(lons_in, fail_silently = False):
         if not check_ok(lons_in, fail_silently):
             return lons_in
         lons_out = do_it(lons_in)
+        if not is_strictly_increasing(lons_out):
+            print("WARNING: You passed in numeric longitudes to lon_idl2pm() and these have been converted, but they're not strictly increasing.")
+        print("To assign the new longitude coordinates to an Xarray object, use xarrayobject.assign_coordinates()! (Pass the object directly in to lon_idl2pm() in order to suppress this message.)")
         
     return lons_out
 
@@ -444,6 +447,9 @@ def lon_pm2idl(lons_in, fail_silently = False):
         if not check_ok(lons_in, fail_silently):
             return lons_in
         lons_out = do_it(lons_in)
+        if not is_strictly_increasing(lons_out):
+            print("WARNING: You passed in numeric longitudes to lon_pm2idl() and these have been converted, but they're not strictly increasing.")
+        print("To assign the new longitude coordinates to an Xarray object, use xarrayobject.assign_coordinates()! (Pass the object directly in to lon_pm2idl() in order to suppress this message.)")
         
     return lons_out
 
