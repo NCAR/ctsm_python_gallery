@@ -678,6 +678,11 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
         ds = ds.rename(pft2patch_dict)
 
     if vars_to_import != None:
+        # Split vars_to_import into variables that are vs. aren't already in ds
+        derived_vars = [v for v in vars_to_import if v not in ds]
+        present_vars = [v for v in vars_to_import if v in ds]
+        vars_to_import = present_vars
+        
         # Get list of dimensions present in variables in vars_to_import.
         dimList = []
         for thisVar in vars_to_import:
@@ -734,6 +739,19 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
 
     # Finish import
     ds = xr.decode_cf(ds, decode_times = True)
+    
+    # Compute derived variables
+    for v in derived_vars:
+        if v == "HYEARS" and "HDATES" in ds and ds.HDATES.dims == ('time', 'mxharvests', 'patch'):
+            yearList = np.array([np.float32(x.year - 1) for x in ds.time.values])
+            hyears = ds["HDATES"].copy()
+            hyears.values = np.tile(np.expand_dims(yearList, (1,2)), (1, ds.dims["mxharvests"], ds.dims["patch"]))
+            hyears.values[ds.HDATES.values<=0] = ds.HDATES.values[ds.HDATES.values<=0]
+            hyears.values[np.isnan(ds.HDATES.values)] = np.nan
+            hyears.attrs["long_name"] = "DERIVED: actual crop harvest years"
+            hyears.attrs["units"] = "year"
+            ds["HYEARS"] = hyears
+    
     return ds
 
 
@@ -763,7 +781,7 @@ def patch2pft(xr_object):
 
 
 # Import a dataset that can be spread over multiple files, only including specified variables and/or vegetation types and/or timesteps, concatenating by time. DOES actually read the dataset into memory, but only AFTER dropping unwanted variables and/or vegetation types.
-def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None):
+def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_missing_ok=[]):
 
     # Convert myVegtypes here, if needed, to avoid repeating the process each time you read a file in xr.open_mfdataset().
     if myVegtypes != None:
@@ -777,9 +795,11 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None):
         if not isinstance(myVars, list):
             myVars = [myVars]
             
-    # Make sure filelist is actually a list
+    # Make sure lists are actually lists
     if not isinstance(filelist, list):
         filelist = [filelist]
+    if not isinstance(myVars_missing_ok, list):
+        myVars_missing_ok = [myVars_missing_ok]
             
     # Remove files from list if they don't contain requested timesteps.
     # timeSlice should be in the format slice(start,end[,step]). start or end can be None to be unbounded on one side. Note that the standard slice() documentation suggests that only elements through end-1 will be selected, but that seems not to be the case in the xarray implementation.
@@ -811,6 +831,15 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None):
         this_ds = xr.open_dataset(filelist)
         this_ds = mfdataset_preproc(this_ds, myVars, myVegtypes, timeSlice)
         this_ds = this_ds.compute()
+        
+    # Warn and/or error about variables that couldn't be imported or derived
+    missing_vars = [v for v in myVars if v not in this_ds]
+    ok_missing_vars = [v for v in missing_vars if v in myVars_missing_ok]
+    bad_missing_vars = [v for v in missing_vars if v not in myVars_missing_ok]
+    if ok_missing_vars:
+        print(f"Could not import some variables; either not present or not deriveable: {ok_missing_vars}")
+    if bad_missing_vars:
+        raise RuntimeError(f"Could not import some variables; either not present or not deriveable: {bad_missing_vars}")
     
     return this_ds
 
