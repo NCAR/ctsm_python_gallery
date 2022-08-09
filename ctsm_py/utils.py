@@ -485,6 +485,7 @@ def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
     return indices
 
 # Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size. Use dimension "vegtype" to extract patches of designated vegetation type (can be string or integer).
+# Can also do dimension=function---e.g., time=np.mean will take the mean over the time dimension.
 def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=True, **kwargs):
     
     # Setup
@@ -492,8 +493,20 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
     delimiter = "__"
     
     for key, selection in kwargs.items():
+        
+        if callable(selection):
+            # It would have been really nice to do selection(xr_object, axis=key), but numpy methods and xarray methods disagree on "axis" vs. "dimension." So instead, just do this manually.
+            if selection == np.mean:
+                try:
+                    xr_object = xr_object.mean(dim=key)
+                except:
+                    raise ValueError(f"Failed to take mean of dimension {key}. Try doing so outside of xr_flexsel().")
+            else:
+                raise ValueError(f"xr_flexsel() doesn't recognize function {selection}")
 
-        if key == "vegtype":
+        elif key == "vegtype":
+            
+            
 
             # Convert to list, if needed
             if not isinstance(selection, list):
