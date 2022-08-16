@@ -282,8 +282,8 @@ def ivt_str2int(ivt_str):
 def ivt_int2str(ivt_int):
     
     pftlist = define_pftlist()
-    if np.issubdtype(type(ivt_int), np.integer):
-        ivt_str = pftlist[ivt_int]
+    if np.issubdtype(type(ivt_int), np.integer) or int(ivt_int)==ivt_int:
+        ivt_str = pftlist[int(ivt_int)]
     elif isinstance(ivt_int, list) or isinstance(ivt_int, np.ndarray):
         ivt_str = [ivt_int2str(x) for x in ivt_int]
         if isinstance(ivt_int, np.ndarray):
