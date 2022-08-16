@@ -964,7 +964,10 @@ def grid_one_variable(this_ds, thisVar, fillValue=None, **kwargs):
         elif not fill_indices:
         # I.e., if fill_indices is empty. Could also do "elif len(fill_indices)==0".
             fill_indices.append(Ellipsis)
-    thisvar_gridded[tuple(fill_indices[:len(fill_indices)])] = thisvar_da.values
+    try:
+        thisvar_gridded[tuple(fill_indices[:len(fill_indices)])] = thisvar_da.values
+    except:
+        thisvar_gridded[tuple(fill_indices[:len(fill_indices)])] = thisvar_da.values.transpose()
     if not np.any(np.bitwise_not(np.isnan(thisvar_gridded))):
         raise RuntimeError("thisvar_gridded was not filled! (Or was filled with just NaN)")
     
