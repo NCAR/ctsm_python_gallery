@@ -542,11 +542,6 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
             # Check type of selection
             else:
                 
-                # Suggest suppressing selection type interpretation warnings
-                if warn_about_seltype_interp and not havewarned:
-                    print("xr_flexsel(): Suppress all 'selection type interpretation' messages by specifying warn_about_seltype_interp=False")
-                    havewarned = False
-                
                 is_inefficient = False
                 if isinstance(selection, slice):
                     slice_members = []
@@ -584,13 +579,20 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
                 else:
                     this_type = type(selection)
                 
-                print(f"this_type: {this_type}")
-                if this_type == int:
+                warn_about_this_seltype_interp = warn_about_seltype_interp
+                if this_type == list and isinstance(selection[0], str):
+                    selection_type = "values"
+                    warn_about_this_seltype_interp = False
+                elif this_type == int:
                     selection_type = "indices"
                 else:
                     selection_type = "values"
                 
-                if warn_about_seltype_interp:
+                if warn_about_this_seltype_interp:
+                    # Suggest suppressing selection type interpretation warnings
+                    if not havewarned:
+                        print("xr_flexsel(): Suppress all 'selection type interpretation' messages by specifying warn_about_seltype_interp=False")
+                        havewarned = True
                     if is_inefficient:
                         extra =  " This will also improve efficiency for large selections."
                     else:
