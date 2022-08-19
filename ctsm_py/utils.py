@@ -982,7 +982,10 @@ def grid_one_variable(this_ds, thisVar, fillValue=None, **kwargs):
     except:
         thisvar_gridded[tuple(fill_indices[:len(fill_indices)])] = thisvar_da.values.transpose()
     if not np.any(np.bitwise_not(np.isnan(thisvar_gridded))):
-        raise RuntimeError("thisvar_gridded was not filled! (Or was filled with just NaN)")
+        if np.all(np.isnan(thisvar_da.values)):
+            print('Warning: This DataArray (and thus map) is all NaN')
+        else:
+            raise RuntimeError("thisvar_gridded was not filled!")
     
     # Assign coordinates, attributes and name
     thisvar_gridded = xr.DataArray(thisvar_gridded, \
