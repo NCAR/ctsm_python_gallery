@@ -309,6 +309,8 @@ Methods:
 def is_this_vegtype(this_vegtype, this_filter, this_method):
 
     # Make sure data type of this_vegtype is acceptable
+    if isinstance(this_vegtype, float) and int(this_vegtype)==this_vegtype:
+        this_vegtype = int(this_vegtype)
     data_type_ok = lambda x: isinstance(x, str) or isinstance(x, int) or isinstance(x, np.int64)
     ok_input = True
     if not data_type_ok(this_vegtype):
