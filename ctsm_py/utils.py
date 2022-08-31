@@ -694,6 +694,7 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
             pft2patch_dict[m] = m.replace("pft","patch").replace("patchs","patches")
         ds = ds.rename(pft2patch_dict)
 
+    derived_vars = []
     if vars_to_import != None:
         # Split vars_to_import into variables that are vs. aren't already in ds
         derived_vars = [v for v in vars_to_import if v not in ds]
