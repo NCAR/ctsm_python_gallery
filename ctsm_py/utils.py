@@ -808,10 +808,13 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_mis
         if isinstance(myVegtypes[0], str):
             myVegtypes = vegtype_str2int(myVegtypes)
     
-    # Same for myVars.
+    # Same for these variables.
     if myVars != None:
         if not isinstance(myVars, list):
             myVars = [myVars]
+    if myVars_missing_ok:
+        if not isinstance(myVars_missing_ok, list):
+            myVars_missing_ok = [myVars_missing_ok]
             
     # Make sure lists are actually lists
     if not isinstance(filelist, list):
