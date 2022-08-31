@@ -854,13 +854,14 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_mis
         this_ds = this_ds.compute()
         
     # Warn and/or error about variables that couldn't be imported or derived
-    missing_vars = [v for v in myVars if v not in this_ds]
-    ok_missing_vars = [v for v in missing_vars if v in myVars_missing_ok]
-    bad_missing_vars = [v for v in missing_vars if v not in myVars_missing_ok]
-    if ok_missing_vars:
-        print(f"Could not import some variables; either not present or not deriveable: {ok_missing_vars}")
-    if bad_missing_vars:
-        raise RuntimeError(f"Could not import some variables; either not present or not deriveable: {bad_missing_vars}")
+    if myVars:
+        missing_vars = [v for v in myVars if v not in this_ds]
+        ok_missing_vars = [v for v in missing_vars if v in myVars_missing_ok]
+        bad_missing_vars = [v for v in missing_vars if v not in myVars_missing_ok]
+        if ok_missing_vars:
+            print(f"Could not import some variables; either not present or not deriveable: {ok_missing_vars}")
+        if bad_missing_vars:
+            raise RuntimeError(f"Could not import some variables; either not present or not deriveable: {bad_missing_vars}")
     
     return this_ds
 
