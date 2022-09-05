@@ -1045,3 +1045,62 @@ def resample(ds_in, thefunction, **kwargs):
         ds_out[v] = ds_out[v].isel(**indexers, drop=True)
     
     return ds_out
+
+
+# Have a DataArray that's just for one time point? Repeat it for many.
+def tile_over_time(da_in, years=None):
+    
+    if "time" not in da_in.dims:
+        raise RuntimeError('Rework tile_over_time() to function with da_in lacking time dimension.')
+    
+    # Deal with Datasets
+    if isinstance(da_in, xr.Dataset):
+        ds_out = xr.Dataset()
+        for v in da_in:
+            if 'time' in da_in[v].dims and v != "time_bounds":
+                ds_out[v] = tile_over_time(da_in[v], years=years)
+            else:
+                ds_out[v] = da_in[v].copy()
+        return ds_out
+    elif not isinstance(da_in, xr.DataArray):
+        raise RuntimeError(f'tile_over_time() only works with xarray Datasets and DataArrays, not {type(da_in)}')
+    
+    # Get info about time in input DataArray
+    dt0 = da_in.time.values[0]
+    dt_type = type(dt0)
+    has_year_zero = dt0.has_year_zero
+    
+    if type(years) != type(None):
+        new_time = np.array([dt_type(x, dt0.month, dt0.day, has_year_zero=has_year_zero) for x in years])
+        strftime_fmt = '%Y-%m-%d'
+        Ntime = len(years)
+    else:
+        raise RuntimeError('Rework tile_over_time to work with something other than years')
+    
+    # Convert from cftime to int days since, for compatibility with NETCDF3-CLASSIC format.
+    new_time_units = 'days since ' + new_time[0].strftime(strftime_fmt)
+    new_time = cftime.date2num(new_time, new_time_units)
+    
+    # Set up time DataArray
+    new_time_attrs = da_in.time.attrs
+    new_time_attrs['units'] = new_time_units
+    new_time_attrs['calendar'] = dt0.calendar
+    new_time_da = xr.DataArray(new_time, dims=['time'], coords={'time': new_time}, attrs=new_time_attrs)
+    
+    # Get coordinates to be used in new DataArray
+    new_coords = {}
+    for x in da_in.coords:
+        if x == "time":
+            new_coords[x] = new_time_da
+        else:
+            new_coords[x] = da_in.coords[x]
+    
+    # Set up broadcasting DataArray
+    new_shape = tuple([da_in.shape[i] if x != "time" else Ntime for i,x in enumerate(da_in.dims)])
+    bc_da = xr.DataArray(np.ones(new_shape), dims=da_in.dims, coords=new_coords)
+    
+    # Get new DataArray
+    da_out = (da_in.squeeze() * bc_da).transpose(*da_in.dims)
+    da_out = da_out.assign_attrs(da_in.attrs)
+    
+    return da_out
