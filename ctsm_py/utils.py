@@ -1058,7 +1058,13 @@ def tile_over_time(da_in, years=None):
     
     # Deal with Datasets
     if isinstance(da_in, xr.Dataset):
-        ds_out = xr.Dataset()
+        new_attrs = {}
+        for x in da_in.attrs:
+            if x == "created":
+                continue
+            else:
+                new_attrs[x] = da_in.attrs[x]
+        ds_out = xr.Dataset(attrs=new_attrs)
         for v in da_in:
             if 'time' in da_in[v].dims and v != "time_bounds":
                 ds_out[v] = tile_over_time(da_in[v], years=years)
