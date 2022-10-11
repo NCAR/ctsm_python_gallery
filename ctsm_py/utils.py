@@ -467,8 +467,8 @@ def define_mgdcrop_list():
 # Convert list of vegtype strings to integer index equivalents.
 def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
     
-    if isinstance(vegtype_str, str):
-        vegtype_str = [vegtype_str]
+    if not isinstance(vegtype_str, np.ndarray):
+        vegtype_str = np.array(vegtype_str)
     
     if isinstance(vegtype_mainlist, xr.Dataset):
         vegtype_mainlist = vegtype_mainlist.vegtype_str.values
@@ -481,9 +481,10 @@ def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
             raise TypeError(f"Not sure how to handle vegtype_mainlist as list of {type(vegtype_mainlist[0])}")
         else:
             raise TypeError(f"Not sure how to handle vegtype_mainlist as type {type(vegtype_mainlist[0])}")
-    ind_dict = dict((k,i) for i,k in enumerate(vegtype_mainlist))
-    inter = set(ind_dict).intersection(vegtype_str)
-    indices = [ ind_dict[x] for x in inter ]
+
+    indices = np.full(len(vegtype_str), -1)
+    for v in np.unique(vegtype_str):
+        indices[np.where(vegtype_str == v)] = vegtype_mainlist.index(v)
     return indices
 
 # Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size. Use dimension "vegtype" to extract patches of designated vegetation type (can be string or integer).
