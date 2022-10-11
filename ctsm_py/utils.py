@@ -512,8 +512,6 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
 
         elif key == "vegtype":
             
-            
-
             # Convert to list, if needed
             if not isinstance(selection, list):
                 selection = [selection]
@@ -534,7 +532,7 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
                     raise ValueError(f"If providing boolean 'vegtype' argument to xr_flexsel(), it must be the same length as xr_object.patch ({len(selection)} vs. {len(xr_object.patch)})")
                 is_vegtype = selection
             else:
-                raise TypeError(f"Not sure how to handle 'vegtype' of type {type(selection)}")
+                raise TypeError(f"Not sure how to handle 'vegtype' of type {type(selection[0])}")
             xr_object = xr_object.isel(patch=[i for i, x in enumerate(is_vegtype) if x])
             if "ivt" in xr_object:
                 xr_object = xr_object.isel(ivt=is_each_vegtype(xr_object.ivt.values, selection, "ok_exact"))
