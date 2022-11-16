@@ -282,8 +282,8 @@ def ivt_str2int(ivt_str):
 def ivt_int2str(ivt_int):
     
     pftlist = define_pftlist()
-    if np.issubdtype(type(ivt_int), np.integer):
-        ivt_str = pftlist[ivt_int]
+    if np.issubdtype(type(ivt_int), np.integer) or int(ivt_int)==ivt_int:
+        ivt_str = pftlist[int(ivt_int)]
     elif isinstance(ivt_int, list) or isinstance(ivt_int, np.ndarray):
         ivt_str = [ivt_int2str(x) for x in ivt_int]
         if isinstance(ivt_int, np.ndarray):
@@ -309,6 +309,8 @@ Methods:
 def is_this_vegtype(this_vegtype, this_filter, this_method):
 
     # Make sure data type of this_vegtype is acceptable
+    if isinstance(this_vegtype, float) and int(this_vegtype)==this_vegtype:
+        this_vegtype = int(this_vegtype)
     data_type_ok = lambda x: isinstance(x, str) or isinstance(x, int) or isinstance(x, np.int64)
     ok_input = True
     if not data_type_ok(this_vegtype):
@@ -354,15 +356,15 @@ def is_this_vegtype(this_vegtype, this_filter, this_method):
 def is_each_vegtype(this_vegtypelist, this_filter, this_method):
     return [is_this_vegtype(x, this_filter, this_method) for x in this_vegtypelist]
 
+# Helper function to check that a list is strictly increasing
+def is_strictly_increasing(L):
+    # https://stackoverflow.com/a/4983359/2965321
+    return all(x<y for x, y in zip(L, L[1:]))
 
 # Ensure that longitude axis coordinates are monotonically increasing
 def make_lon_increasing(xr_obj):
     if not "lon" in xr_obj.dims:
         return xr_obj
-    
-    def is_strictly_increasing(L):
-        # https://stackoverflow.com/a/4983359/2965321
-        return all(x<y for x, y in zip(L, L[1:]))
     
     lons = xr_obj.lon.values
     if is_strictly_increasing(lons):
@@ -410,6 +412,9 @@ def lon_idl2pm(lons_in, fail_silently = False):
         if not check_ok(lons_in, fail_silently):
             return lons_in
         lons_out = do_it(lons_in)
+        if not is_strictly_increasing(lons_out):
+            print("WARNING: You passed in numeric longitudes to lon_idl2pm() and these have been converted, but they're not strictly increasing.")
+        print("To assign the new longitude coordinates to an Xarray object, use xarrayobject.assign_coordinates()! (Pass the object directly in to lon_idl2pm() in order to suppress this message.)")
         
     return lons_out
 
@@ -444,6 +449,9 @@ def lon_pm2idl(lons_in, fail_silently = False):
         if not check_ok(lons_in, fail_silently):
             return lons_in
         lons_out = do_it(lons_in)
+        if not is_strictly_increasing(lons_out):
+            print("WARNING: You passed in numeric longitudes to lon_pm2idl() and these have been converted, but they're not strictly increasing.")
+        print("To assign the new longitude coordinates to an Xarray object, use xarrayobject.assign_coordinates()! (Pass the object directly in to lon_pm2idl() in order to suppress this message.)")
         
     return lons_out
 
@@ -479,6 +487,7 @@ def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
     return indices
 
 # Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size. Use dimension "vegtype" to extract patches of designated vegetation type (can be string or integer).
+# Can also do dimension=function---e.g., time=np.mean will take the mean over the time dimension.
 def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=True, **kwargs):
     
     # Setup
@@ -486,8 +495,20 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
     delimiter = "__"
     
     for key, selection in kwargs.items():
+        
+        if callable(selection):
+            # It would have been really nice to do selection(xr_object, axis=key), but numpy methods and xarray methods disagree on "axis" vs. "dimension." So instead, just do this manually.
+            if selection == np.mean:
+                try:
+                    xr_object = xr_object.mean(dim=key)
+                except:
+                    raise ValueError(f"Failed to take mean of dimension {key}. Try doing so outside of xr_flexsel().")
+            else:
+                raise ValueError(f"xr_flexsel() doesn't recognize function {selection}")
 
-        if key == "vegtype":
+        elif key == "vegtype":
+            
+            
 
             # Convert to list, if needed
             if not isinstance(selection, list):
@@ -522,11 +543,6 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
                 
             # Check type of selection
             else:
-                
-                # Suggest suppressing selection type interpretation warnings
-                if warn_about_seltype_interp and not havewarned:
-                    print("xr_flexsel(): Suppress all 'selection type interpretation' messages by specifying warn_about_seltype_interp=False")
-                    havewarned = False
                 
                 is_inefficient = False
                 if isinstance(selection, slice):
@@ -565,13 +581,20 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
                 else:
                     this_type = type(selection)
                 
-                print(f"this_type: {this_type}")
-                if this_type == int:
+                warn_about_this_seltype_interp = warn_about_seltype_interp
+                if this_type == list and isinstance(selection[0], str):
+                    selection_type = "values"
+                    warn_about_this_seltype_interp = False
+                elif this_type == int:
                     selection_type = "indices"
                 else:
                     selection_type = "values"
                 
-                if warn_about_seltype_interp:
+                if warn_about_this_seltype_interp:
+                    # Suggest suppressing selection type interpretation warnings
+                    if not havewarned:
+                        print("xr_flexsel(): Suppress all 'selection type interpretation' messages by specifying warn_about_seltype_interp=False")
+                        havewarned = True
                     if is_inefficient:
                         extra =  " This will also improve efficiency for large selections."
                     else:
@@ -671,7 +694,13 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
             pft2patch_dict[m] = m.replace("pft","patch").replace("patchs","patches")
         ds = ds.rename(pft2patch_dict)
 
+    derived_vars = []
     if vars_to_import != None:
+        # Split vars_to_import into variables that are vs. aren't already in ds
+        derived_vars = [v for v in vars_to_import if v not in ds]
+        present_vars = [v for v in vars_to_import if v in ds]
+        vars_to_import = present_vars
+        
         # Get list of dimensions present in variables in vars_to_import.
         dimList = []
         for thisVar in vars_to_import:
@@ -728,6 +757,19 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
 
     # Finish import
     ds = xr.decode_cf(ds, decode_times = True)
+    
+    # Compute derived variables
+    for v in derived_vars:
+        if v == "HYEARS" and "HDATES" in ds and ds.HDATES.dims == ('time', 'mxharvests', 'patch'):
+            yearList = np.array([np.float32(x.year - 1) for x in ds.time.values])
+            hyears = ds["HDATES"].copy()
+            hyears.values = np.tile(np.expand_dims(yearList, (1,2)), (1, ds.dims["mxharvests"], ds.dims["patch"]))
+            hyears.values[ds.HDATES.values<=0] = ds.HDATES.values[ds.HDATES.values<=0]
+            hyears.values[np.isnan(ds.HDATES.values)] = np.nan
+            hyears.attrs["long_name"] = "DERIVED: actual crop harvest years"
+            hyears.attrs["units"] = "year"
+            ds["HYEARS"] = hyears
+    
     return ds
 
 
@@ -757,8 +799,8 @@ def patch2pft(xr_object):
 
 
 # Import a dataset that can be spread over multiple files, only including specified variables and/or vegetation types and/or timesteps, concatenating by time. DOES actually read the dataset into memory, but only AFTER dropping unwanted variables and/or vegetation types.
-def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None):
-
+def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_missing_ok=[], only_active_patches=False):
+    
     # Convert myVegtypes here, if needed, to avoid repeating the process each time you read a file in xr.open_mfdataset().
     if myVegtypes != None:
         if not isinstance(myVegtypes, list):
@@ -766,14 +808,19 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None):
         if isinstance(myVegtypes[0], str):
             myVegtypes = vegtype_str2int(myVegtypes)
     
-    # Same for myVars.
+    # Same for these variables.
     if myVars != None:
         if not isinstance(myVars, list):
             myVars = [myVars]
+    if myVars_missing_ok:
+        if not isinstance(myVars_missing_ok, list):
+            myVars_missing_ok = [myVars_missing_ok]
             
-    # Make sure filelist is actually a list
+    # Make sure lists are actually lists
     if not isinstance(filelist, list):
         filelist = [filelist]
+    if not isinstance(myVars_missing_ok, list):
+        myVars_missing_ok = [myVars_missing_ok]
             
     # Remove files from list if they don't contain requested timesteps.
     # timeSlice should be in the format slice(start,end[,step]). start or end can be None to be unbounded on one side. Note that the standard slice() documentation suggests that only elements through end-1 will be selected, but that seems not to be the case in the xarray implementation.
@@ -805,6 +852,22 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None):
         this_ds = xr.open_dataset(filelist)
         this_ds = mfdataset_preproc(this_ds, myVars, myVegtypes, timeSlice)
         this_ds = this_ds.compute()
+        
+    # Include only active patches (or whatever)
+    if only_active_patches:
+        is_active = this_ds.patches1d_active.values
+        p_active = np.where(is_active)[0]
+        this_ds_active = this_ds.isel(patch=p_active)
+    
+    # Warn and/or error about variables that couldn't be imported or derived
+    if myVars:
+        missing_vars = [v for v in myVars if v not in this_ds]
+        ok_missing_vars = [v for v in missing_vars if v in myVars_missing_ok]
+        bad_missing_vars = [v for v in missing_vars if v not in myVars_missing_ok]
+        if ok_missing_vars:
+            print(f"Could not import some variables; either not present or not deriveable: {ok_missing_vars}")
+        if bad_missing_vars:
+            raise RuntimeError(f"Could not import some variables; either not present or not deriveable: {bad_missing_vars}")
     
     return this_ds
 
@@ -914,9 +977,15 @@ def grid_one_variable(this_ds, thisVar, fillValue=None, **kwargs):
         elif not fill_indices:
         # I.e., if fill_indices is empty. Could also do "elif len(fill_indices)==0".
             fill_indices.append(Ellipsis)
-    thisvar_gridded[tuple(fill_indices[:len(fill_indices)])] = thisvar_da.values
+    try:
+        thisvar_gridded[tuple(fill_indices[:len(fill_indices)])] = thisvar_da.values
+    except:
+        thisvar_gridded[tuple(fill_indices[:len(fill_indices)])] = thisvar_da.values.transpose()
     if not np.any(np.bitwise_not(np.isnan(thisvar_gridded))):
-        raise RuntimeError("thisvar_gridded was not filled! (Or was filled with just NaN)")
+        if np.all(np.isnan(thisvar_da.values)):
+            print('Warning: This DataArray (and thus map) is all NaN')
+        else:
+            raise RuntimeError("thisvar_gridded was not filled!")
     
     # Assign coordinates, attributes and name
     thisvar_gridded = xr.DataArray(thisvar_gridded, \
@@ -979,3 +1048,68 @@ def resample(ds_in, thefunction, **kwargs):
         ds_out[v] = ds_out[v].isel(**indexers, drop=True)
     
     return ds_out
+
+
+# Have a DataArray that's just for one time point? Repeat it for many.
+def tile_over_time(da_in, years=None):
+    
+    if "time" not in da_in.dims:
+        raise RuntimeError('Rework tile_over_time() to function with da_in lacking time dimension.')
+    
+    # Deal with Datasets
+    if isinstance(da_in, xr.Dataset):
+        new_attrs = {}
+        for x in da_in.attrs:
+            if x == "created":
+                continue
+            else:
+                new_attrs[x] = da_in.attrs[x]
+        ds_out = xr.Dataset(attrs=new_attrs)
+        for v in da_in:
+            if 'time' in da_in[v].dims and v != "time_bounds":
+                ds_out[v] = tile_over_time(da_in[v], years=years)
+            else:
+                ds_out[v] = da_in[v].copy()
+        return ds_out
+    elif not isinstance(da_in, xr.DataArray):
+        raise RuntimeError(f'tile_over_time() only works with xarray Datasets and DataArrays, not {type(da_in)}')
+    
+    # Get info about time in input DataArray
+    dt0 = da_in.time.values[0]
+    dt_type = type(dt0)
+    has_year_zero = dt0.has_year_zero
+    
+    if type(years) != type(None):
+        new_time = np.array([dt_type(x, dt0.month, dt0.day, has_year_zero=has_year_zero) for x in years])
+        strftime_fmt = '%Y-%m-%d'
+        Ntime = len(years)
+    else:
+        raise RuntimeError('Rework tile_over_time to work with something other than years')
+    
+    # Convert from cftime to int days since, for compatibility with NETCDF3-CLASSIC format.
+    new_time_units = 'days since ' + new_time[0].strftime(strftime_fmt)
+    new_time = cftime.date2num(new_time, new_time_units)
+    
+    # Set up time DataArray
+    new_time_attrs = da_in.time.attrs
+    new_time_attrs['units'] = new_time_units
+    new_time_attrs['calendar'] = dt0.calendar
+    new_time_da = xr.DataArray(new_time, dims=['time'], coords={'time': new_time}, attrs=new_time_attrs)
+    
+    # Get coordinates to be used in new DataArray
+    new_coords = {}
+    for x in da_in.coords:
+        if x == "time":
+            new_coords[x] = new_time_da
+        else:
+            new_coords[x] = da_in.coords[x]
+    
+    # Set up broadcasting DataArray
+    new_shape = tuple([da_in.shape[i] if x != "time" else Ntime for i,x in enumerate(da_in.dims)])
+    bc_da = xr.DataArray(np.ones(new_shape), dims=da_in.dims, coords=new_coords)
+    
+    # Get new DataArray
+    da_out = (da_in.squeeze() * bc_da).transpose(*da_in.dims)
+    da_out = da_out.assign_attrs(da_in.attrs)
+    
+    return da_out
