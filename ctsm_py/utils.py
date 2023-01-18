@@ -804,7 +804,7 @@ def patch2pft(xr_object):
 
 
 # Import a dataset that can be spread over multiple files, only including specified variables and/or vegetation types and/or timesteps, concatenating by time. DOES actually read the dataset into memory, but only AFTER dropping unwanted variables and/or vegetation types.
-def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_missing_ok=[], only_active_patches=False):
+def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_missing_ok=[], only_active_patches=False, rename_lsmlatlon=False):
     
     # Convert myVegtypes here, if needed, to avoid repeating the process each time you read a file in xr.open_mfdataset().
     if myVegtypes != None:
@@ -873,6 +873,12 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_mis
             print(f"Could not import some variables; either not present or not deriveable: {ok_missing_vars}")
         if bad_missing_vars:
             raise RuntimeError(f"Could not import some variables; either not present or not deriveable: {bad_missing_vars}")
+    
+    if rename_lsmlatlon:
+        if "lsmlat" in this_ds:
+            this_ds = this_ds.rename({'lat': 'lsmlat'})
+        if "lsmlon" in this_ds:
+            this_ds = this_ds.rename({'lon': 'lsmlon'})
     
     return this_ds
 
