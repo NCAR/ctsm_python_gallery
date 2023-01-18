@@ -807,7 +807,7 @@ def patch2pft(xr_object):
 
 
 # Import a dataset that can be spread over multiple files, only including specified variables and/or vegetation types and/or timesteps, concatenating by time. DOES actually read the dataset into memory, but only AFTER dropping unwanted variables and/or vegetation types.
-def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_missing_ok=[], only_active_patches=False, rename_lsmlatlon=False):
+def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_missing_ok=[], only_active_patches=False, rename_lsmlatlon=False, chunks=None):
     
     # Convert myVegtypes here, if needed, to avoid repeating the process each time you read a file in xr.open_mfdataset().
     if myVegtypes != None:
@@ -855,9 +855,10 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_mis
             data_vars="minimal", 
             preprocess=mfdataset_preproc_closure,
             compat='override',
-            coords='all')
+            coords='all',
+            chunks=chunks)
     elif isinstance(filelist, str):
-        this_ds = xr.open_dataset(filelist)
+        this_ds = xr.open_dataset(filelist, chunks=chunks)
         this_ds = mfdataset_preproc(this_ds, myVars, myVegtypes, timeSlice)
         this_ds = this_ds.compute()
         
