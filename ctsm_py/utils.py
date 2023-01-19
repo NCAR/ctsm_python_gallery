@@ -11,15 +11,15 @@ from cartopy.util import add_cyclic_point
 #from xr_ds_ex import xr_ds_ex
 
 # generate annual means, weighted by days / month
-def weighted_annual_mean(array, time_dim_in='time', time_dim_out='time'):
+def weighted_annual_mean(array, time_in='time', time_out='time'):
     mon_day  = xr.DataArray(np.array([31,28,31,30,31,30,31,31,30,31,30,31]), dims=['month'])
     mon_wgt  = mon_day/mon_day.sum()
-    array = (array.rolling({time_dim_in: 12}, center=False) # rolling
+    array = (array.rolling({time_in: 12}, center=False) # rolling
             .construct("month") # construct the array
-            .isel({time_dim_in: slice(11, None, 12)}) # slice so that the first element is [1..12], second is [13..24]
+            .isel({time_in: slice(11, None, 12)}) # slice so that the first element is [1..12], second is [13..24]
             .dot(mon_wgt, dims=["month"]))
-    if time_dim_in != time_dim_out:
-        array = array.rename({time_dim_in: time_dim_out})
+    if time_in != time_out:
+        array = array.rename({time_in: time_out})
     return array
 
 def change_units(ds, variable_str, variable_bounds_str, target_unit_str):
