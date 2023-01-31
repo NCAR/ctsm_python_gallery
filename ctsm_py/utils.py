@@ -893,10 +893,10 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_mis
             raise RuntimeError(f"Could not import some variables; either not present or not deriveable: {bad_missing_vars}")
     
     if rename_lsmlatlon:
-        if "lsmlat" in this_ds:
-            this_ds = this_ds.rename({'lat': 'lsmlat'})
-        if "lsmlon" in this_ds:
-            this_ds = this_ds.rename({'lon': 'lsmlon'})
+        if "lsmlat" in this_ds.dims:
+            this_ds = this_ds.rename({'lsmlat': 'lat'})
+        if "lsmlon" in this_ds.dims:
+            this_ds = this_ds.rename({'lsmlon': 'lon'})
     
     return this_ds
 
