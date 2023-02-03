@@ -955,9 +955,19 @@ def grid_one_variable(this_ds, thisVar, fillValue=None, **kwargs):
     
     # Get DataArrays needed for gridding
     thisvar_da = get_thisVar_da(thisVar, this_ds)
-    ixy_da = get_thisVar_da("patches1d_ixy", this_ds)
-    jxy_da = get_thisVar_da("patches1d_jxy", this_ds)
-    vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
+    vt_da = None
+    if "patch" in thisvar_da.dims:
+        spatial_unit = "patch"
+        xy_1d_prefix = "patches"
+        vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
+    elif "gridcell" in thisvar_da.dims:
+        spatial_unit = "gridcell"
+        xy_1d_prefix = "grid"
+    else:
+        raise RuntimeError(f"What variables to use for _ixy and _jxy of variable with dims {thisvar_da.dims}?")
+    ixy_da = get_thisVar_da(xy_1d_prefix + "1d_ixy", this_ds)
+    jxy_da = get_thisVar_da(xy_1d_prefix + "1d_jxy", this_ds)
+    
     
     if not fillValue and "_FillValue" in thisvar_da.attrs:
         fillValue = thisvar_da.attrs["_FillValue"]
@@ -965,16 +975,16 @@ def grid_one_variable(this_ds, thisVar, fillValue=None, **kwargs):
     # Renumber vt_da to work as indices on new ivt dimension, if needed.
     ### Ensures that the unique set of vt_da values begins with 1 and
     ### contains no missing steps.
-    if "ivt" in this_ds:
+    if "ivt" in this_ds and vt_da is not None:
         vt_da.values = np.array([np.where(this_ds.ivt.values == x)[0][0] for x in vt_da.values])
     
     # Get new dimension list
     new_dims = list(thisvar_da.dims)
-    ### Remove "patch".
-    if "patch" in new_dims:
-        new_dims.remove("patch")
+    ### Remove "[spatial_unit]".
+    if spatial_unit in new_dims:
+        new_dims.remove(spatial_unit)
     #  Add "ivt_str" (vegetation type, as string). This needs to go at the end, to avoid a possible situation where you wind up with multiple Ellipsis members of fill_indices.
-    if "ivt" in this_ds:
+    if "ivt" in this_ds and spatial_unit=="patch":
         new_dims.append("ivt_str")
     ### Add lat and lon to end of list
     new_dims = new_dims + ["lat", "lon"]
