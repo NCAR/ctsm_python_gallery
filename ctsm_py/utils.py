@@ -371,6 +371,10 @@ def is_this_vegtype(this_vegtype, this_filter, this_method):
     this_method:      How you want to do the comparison. See is_this_vegtype().
 '''
 def is_each_vegtype(this_vegtypelist, this_filter, this_method):
+    
+    if isinstance(this_vegtypelist, xr.DataArray):
+        this_vegtypelist = this_vegtypelist.values
+    
     return [is_this_vegtype(x, this_filter, this_method) for x in this_vegtypelist]
 
 # Helper function to check that a list is strictly increasing
