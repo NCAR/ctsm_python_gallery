@@ -963,7 +963,8 @@ def grid_one_variable(this_ds, thisVar, fillValue=None, **kwargs):
     if "patch" in thisvar_da.dims:
         spatial_unit = "patch"
         xy_1d_prefix = "patches"
-        vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
+        if "patches1d_itype_veg" in this_ds:
+            vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
     elif "gridcell" in thisvar_da.dims:
         spatial_unit = "gridcell"
         xy_1d_prefix = "grid"
