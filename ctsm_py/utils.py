@@ -11,13 +11,30 @@ from cartopy.util import add_cyclic_point
 #from xr_ds_ex import xr_ds_ex
 
 # generate annual means, weighted by days / month
-def weighted_annual_mean(array):
-    mon_day  = xr.DataArray(np.array([31,28,31,30,31,30,31,31,30,31,30,31]), dims=['month'])
-    mon_wgt  = mon_day/mon_day.sum()
-    return (array.rolling(time=12, center=False) # rolling
-            .construct("month") # construct the array
-            .isel(time=slice(11, None, 12)) # slice so that the first element is [1..12], second is [13..24]
-            .dot(mon_wgt, dims=["month"]))
+def weighted_annual_mean(array, time_in='time', time_out='time'):
+    
+    if isinstance(array[time_in].values[0], cftime.datetime):
+        month_length = array[time_in].dt.days_in_month
+        
+        # After https://docs.xarray.dev/en/v0.5.1/examples/monthly-means.html
+        group = f'{time_in}.year'
+        weights = month_length.groupby(group) / month_length.groupby(group).sum()
+        np.testing.assert_allclose(weights.groupby(group).sum().values, 1)
+        array = (array * weights).groupby(group).sum(dim=time_in, skipna=True)
+        if time_out != "year":
+            array = array.rename({'year': time_out})
+        
+    else:
+        mon_day  = xr.DataArray(np.array([31,28,31,30,31,30,31,31,30,31,30,31]), dims=['month'])
+        mon_wgt  = mon_day/mon_day.sum()
+        array = (array.rolling({time_in: 12}, center=False) # rolling
+                .construct("month") # construct the array
+                .isel({time_in: slice(11, None, 12)}) # slice so that the first element is [1..12], second is [13..24]
+                .dot(mon_wgt, dims=["month"]))
+        if time_in != time_out:
+            array = array.rename({time_in: time_out})
+        
+    return array
 
 def change_units(ds, variable_str, variable_bounds_str, target_unit_str):
     """ Applies unit conversion on an xarray DataArray """
@@ -354,6 +371,10 @@ def is_this_vegtype(this_vegtype, this_filter, this_method):
     this_method:      How you want to do the comparison. See is_this_vegtype().
 '''
 def is_each_vegtype(this_vegtypelist, this_filter, this_method):
+    
+    if isinstance(this_vegtypelist, xr.DataArray):
+        this_vegtypelist = this_vegtypelist.values
+    
     return [is_this_vegtype(x, this_filter, this_method) for x in this_vegtypelist]
 
 # Helper function to check that a list is strictly increasing
@@ -467,8 +488,9 @@ def define_mgdcrop_list():
 # Convert list of vegtype strings to integer index equivalents.
 def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
     
-    if isinstance(vegtype_str, str):
-        vegtype_str = [vegtype_str]
+    convert_to_ndarray = not isinstance(vegtype_str, np.ndarray)
+    if convert_to_ndarray:
+        vegtype_str = np.array(vegtype_str)
     
     if isinstance(vegtype_mainlist, xr.Dataset):
         vegtype_mainlist = vegtype_mainlist.vegtype_str.values
@@ -481,9 +503,15 @@ def vegtype_str2int(vegtype_str, vegtype_mainlist=None):
             raise TypeError(f"Not sure how to handle vegtype_mainlist as list of {type(vegtype_mainlist[0])}")
         else:
             raise TypeError(f"Not sure how to handle vegtype_mainlist as type {type(vegtype_mainlist[0])}")
-    ind_dict = dict((k,i) for i,k in enumerate(vegtype_mainlist))
-    inter = set(ind_dict).intersection(vegtype_str)
-    indices = [ ind_dict[x] for x in inter ]
+
+    if vegtype_str.shape == ():
+        indices = np.array([-1])
+    else:
+        indices = np.full(len(vegtype_str), -1)
+    for v in np.unique(vegtype_str):
+        indices[np.where(vegtype_str == v)] = vegtype_mainlist.index(v)
+    if convert_to_ndarray:
+        indices = [int(x) for x in indices]
     return indices
 
 # Flexibly subset time(s) and/or vegetation type(s) from an xarray Dataset or DataArray. Keyword arguments like dimension=selection. Selections can be individual values or slice()s. Optimize memory usage by beginning keyword argument list with the selections that will result in the largest reduction of object size. Use dimension "vegtype" to extract patches of designated vegetation type (can be string or integer).
@@ -508,8 +536,6 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
 
         elif key == "vegtype":
             
-            
-
             # Convert to list, if needed
             if not isinstance(selection, list):
                 selection = [selection]
@@ -530,7 +556,7 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
                     raise ValueError(f"If providing boolean 'vegtype' argument to xr_flexsel(), it must be the same length as xr_object.patch ({len(selection)} vs. {len(xr_object.patch)})")
                 is_vegtype = selection
             else:
-                raise TypeError(f"Not sure how to handle 'vegtype' of type {type(selection)}")
+                raise TypeError(f"Not sure how to handle 'vegtype' of type {type(selection[0])}")
             xr_object = xr_object.isel(patch=[i for i, x in enumerate(is_vegtype) if x])
             if "ivt" in xr_object:
                 xr_object = xr_object.isel(ivt=is_each_vegtype(xr_object.ivt.values, selection, "ok_exact"))
@@ -799,7 +825,7 @@ def patch2pft(xr_object):
 
 
 # Import a dataset that can be spread over multiple files, only including specified variables and/or vegetation types and/or timesteps, concatenating by time. DOES actually read the dataset into memory, but only AFTER dropping unwanted variables and/or vegetation types.
-def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_missing_ok=[], only_active_patches=False):
+def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_missing_ok=[], only_active_patches=False, rename_lsmlatlon=False, chunks=None):
     
     # Convert myVegtypes here, if needed, to avoid repeating the process each time you read a file in xr.open_mfdataset().
     if myVegtypes != None:
@@ -847,9 +873,10 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_mis
             data_vars="minimal", 
             preprocess=mfdataset_preproc_closure,
             compat='override',
-            coords='all')
+            coords='all',
+            chunks=chunks)
     elif isinstance(filelist, str):
-        this_ds = xr.open_dataset(filelist)
+        this_ds = xr.open_dataset(filelist, chunks=chunks)
         this_ds = mfdataset_preproc(this_ds, myVars, myVegtypes, timeSlice)
         this_ds = this_ds.compute()
         
@@ -868,6 +895,12 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_mis
             print(f"Could not import some variables; either not present or not deriveable: {ok_missing_vars}")
         if bad_missing_vars:
             raise RuntimeError(f"Could not import some variables; either not present or not deriveable: {bad_missing_vars}")
+    
+    if rename_lsmlatlon:
+        if "lsmlat" in this_ds.dims:
+            this_ds = this_ds.rename({'lsmlat': 'lat'})
+        if "lsmlon" in this_ds.dims:
+            this_ds = this_ds.rename({'lsmlon': 'lon'})
     
     return this_ds
 
@@ -926,9 +959,20 @@ def grid_one_variable(this_ds, thisVar, fillValue=None, **kwargs):
     
     # Get DataArrays needed for gridding
     thisvar_da = get_thisVar_da(thisVar, this_ds)
-    ixy_da = get_thisVar_da("patches1d_ixy", this_ds)
-    jxy_da = get_thisVar_da("patches1d_jxy", this_ds)
-    vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
+    vt_da = None
+    if "patch" in thisvar_da.dims:
+        spatial_unit = "patch"
+        xy_1d_prefix = "patches"
+        if "patches1d_itype_veg" in this_ds:
+            vt_da = get_thisVar_da("patches1d_itype_veg", this_ds)
+    elif "gridcell" in thisvar_da.dims:
+        spatial_unit = "gridcell"
+        xy_1d_prefix = "grid"
+    else:
+        raise RuntimeError(f"What variables to use for _ixy and _jxy of variable with dims {thisvar_da.dims}?")
+    ixy_da = get_thisVar_da(xy_1d_prefix + "1d_ixy", this_ds)
+    jxy_da = get_thisVar_da(xy_1d_prefix + "1d_jxy", this_ds)
+    
     
     if not fillValue and "_FillValue" in thisvar_da.attrs:
         fillValue = thisvar_da.attrs["_FillValue"]
@@ -936,15 +980,16 @@ def grid_one_variable(this_ds, thisVar, fillValue=None, **kwargs):
     # Renumber vt_da to work as indices on new ivt dimension, if needed.
     ### Ensures that the unique set of vt_da values begins with 1 and
     ### contains no missing steps.
-    vt_da.values = np.array([np.where(this_ds.ivt.values == x)[0][0] for x in vt_da.values])
+    if "ivt" in this_ds and vt_da is not None:
+        vt_da.values = np.array([np.where(this_ds.ivt.values == x)[0][0] for x in vt_da.values])
     
     # Get new dimension list
     new_dims = list(thisvar_da.dims)
-    ### Remove "patch".
-    if "patch" in new_dims:
-        new_dims.remove("patch")
+    ### Remove "[spatial_unit]".
+    if spatial_unit in new_dims:
+        new_dims.remove(spatial_unit)
     #  Add "ivt_str" (vegetation type, as string). This needs to go at the end, to avoid a possible situation where you wind up with multiple Ellipsis members of fill_indices.
-    if "ivt" in this_ds:
+    if "ivt" in this_ds and spatial_unit=="patch":
         new_dims.append("ivt_str")
     ### Add lat and lon to end of list
     new_dims = new_dims + ["lat", "lon"]
