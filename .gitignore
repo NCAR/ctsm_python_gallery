@@ -109,3 +109,6 @@ venv.bak/
 
 # ignore directory
 ignore/
+
+# VSCode
+.vscode
