@@ -788,7 +788,7 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
     
     # Restrict to time slice, if any
     if timeSlice:
-        ds = ds.sel(time=timeSlice)
+        ds = safer_timeslice(ds, timeSlice)
 
     # Finish import
     ds = xr.decode_cf(ds, decode_times = True)
@@ -862,7 +862,10 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_mis
     if timeSlice:
         new_filelist = []
         for file in sorted(filelist):
-            if xr.open_dataset(file).time.sel(time=timeSlice).size:
+            filetime = xr.open_dataset(file).time
+            filetime_sel = safer_timeslice(filetime, timeSlice)
+            include_this_file = filetime_sel.size
+            if include_this_file:
                 new_filelist.append(file)
             
              # If you found some matching files, but then you find one that doesn't, stop going through the list.
@@ -1173,3 +1176,27 @@ def tile_over_time(da_in, years=None):
     da_out = da_out.assign_attrs(da_in.attrs)
     
     return da_out
+
+
+# ctsm_pylib can't handle time slicing like Dataset.sel(time=slice("1998-01-01", "2005-12-31")) for some reason. This function tries to fall back to slicing by integers. It should work with both Datasets and DataArrays.
+def safer_timeslice(ds, timeSlice, timeVar="time"):
+    try:
+        ds = ds.sel({timeVar: timeSlice})
+    except:
+        # If the issue might have been slicing using strings, try to fall back to integer slicing
+        if isinstance(timeSlice.start, str) and isinstance(timeSlice.stop, str) \
+            and len(timeSlice.start.split("-")) == 3 and timeSlice.start.split("-")[1:] == ["01", "01"] \
+            and len(timeSlice.stop.split("-")) == 3 and (timeSlice.stop.split("-")[1:] == ["12", "31"] or timeSlice.stop.split("-")[1:] == ["01", "01"]):
+                fileyears = np.array([x.year for x in ds.time.values])
+                if len(np.unique(fileyears)) != len(fileyears):
+                    print("Could not fall back to integer slicing of years: Time axis not annual")
+                    raise
+                yStart = int(timeSlice.start.split("-")[0])
+                yStop = int(timeSlice.stop.split("-")[0])
+                where_in_timeSlice = np.where((fileyears >= yStart) & (fileyears <= yStop))[0]
+                ds = ds.isel({timeVar: where_in_timeSlice})
+        else:
+            print(f"Could not fall back to integer slicing for timeSlice {timeSlice}")
+            raise
+
+    return ds
