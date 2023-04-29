@@ -874,6 +874,8 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_mis
             preprocess=mfdataset_preproc_closure,
             compat='override',
             coords='all',
+            concat_dim='time',
+            combine='nested',
             chunks=chunks)
     elif isinstance(filelist, str):
         this_ds = xr.open_dataset(filelist, chunks=chunks)
