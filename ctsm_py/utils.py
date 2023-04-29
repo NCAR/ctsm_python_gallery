@@ -877,7 +877,11 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_mis
         lambda ds: mfdataset_preproc(ds, myVars, myVegtypes, timeSlice)
 
     # Import
+    if isinstance(filelist, list) and len(filelist) == 1:
+        filelist = filelist[0]
     if isinstance(filelist, list):
+        if importlib.util.find_spec('dask') is None:
+            raise ModuleNotFoundError(f"You have asked xarray to import a list of files as a single Dataset using open_mfdataset(), but this requires dask, which is not available.\nFile list: {filelist}")
         this_ds = xr.open_mfdataset(sorted(filelist), \
             data_vars="minimal", 
             preprocess=mfdataset_preproc_closure,
