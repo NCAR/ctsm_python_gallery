@@ -799,7 +799,9 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
             yearList = np.array([np.float32(x.year - 1) for x in ds.time.values])
             hyears = ds["HDATES"].copy()
             hyears.values = np.tile(np.expand_dims(yearList, (1,2)), (1, ds.dims["mxharvests"], ds.dims["patch"]))
-            hyears.values[ds.HDATES.values<=0] = ds.HDATES.values[ds.HDATES.values<=0]
+            with np.errstate(invalid="ignore"):
+                is_le_zero = ~np.isnan(ds.HDATES.values) & (ds.HDATES.values<=0)
+            hyears.values[is_le_zero] = ds.HDATES.values[is_le_zero]
             hyears.values[np.isnan(ds.HDATES.values)] = np.nan
             hyears.attrs["long_name"] = "DERIVED: actual crop harvest years"
             hyears.attrs["units"] = "year"
