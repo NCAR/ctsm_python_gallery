@@ -2,14 +2,17 @@
 """copied from klindsay, https://github.com/klindsay28/CESM2_coup_carb_cycle_JAMES/blob/master/utils.py"""
 
 import re
+import warnings
 import importlib
-if importlib.util.find_spec('cf_units') is not None:
-    import cf_units as cf
+with warnings.catch_warnings():
+    warnings.filterwarnings(action='ignore', category=DeprecationWarning)
+    if importlib.find_loader('cf_units') is not None:
+        import cf_units as cf
+    if importlib.find_loader('cartopy') is not None:
+        from cartopy.util import add_cyclic_point
 import cftime
 import numpy as np
 import xarray as xr
-if importlib.util.find_spec('cartopy') is not None:
-    from cartopy.util import add_cyclic_point
 
 #from xr_ds_ex import xr_ds_ex
 
@@ -41,8 +44,10 @@ def weighted_annual_mean(array, time_in='time', time_out='time'):
 
 def change_units(ds, variable_str, variable_bounds_str, target_unit_str):
     """ Applies unit conversion on an xarray DataArray """
-    if importlib.util.find_spec('cf_units') is None:
-        raise ModuleNotFoundError("change_units() depends on cf_units, which is not available")
+    with warnings.catch_warnings():
+        warnings.filterwarnings(action='ignore', category=DeprecationWarning)
+        if importlib.find_loader('cf_units') is None:
+            raise ModuleNotFoundError("change_units() depends on cf_units, which is not available")
     orig_units = cf.Unit(ds[variable_str].attrs["units"])
     target_units = cf.Unit(target_unit_str)
     variable_in_new_units = xr.apply_ufunc(
@@ -150,8 +155,10 @@ def cyclic_dataarray(da, coord='lon'):
            [4, 5, 6, 4]])
     """
     assert isinstance(da, xr.DataArray)
-    if importlib.util.find_spec('cartopy') is None:
-        raise ModuleNotFoundError("cyclic_dataarray() depends on cartopy, which is not available")
+    with warnings.catch_warnings():
+        warnings.filterwarnings(action='ignore', category=DeprecationWarning)
+        if importlib.find_loader('cartopy') is None:
+            raise ModuleNotFoundError("cyclic_dataarray() depends on cartopy, which is not available")
 
     lon_idx = da.dims.index(coord)
     cyclic_data, cyclic_coord = add_cyclic_point(da.values,
@@ -179,8 +186,10 @@ def cyclic_dataarray(da, coord='lon'):
 '''
 def cyclic_dataset(ds, coord='lon'):
     assert isinstance(ds, xr.Dataset)
-    if importlib.util.find_spec('cartopy') is None:
-        raise ModuleNotFoundError("cyclic_dataset() depends on cartopy, which is not available")
+    with warnings.catch_warnings():
+        warnings.filterwarnings(action='ignore', category=DeprecationWarning)
+        if importlib.find_loader('cartopy') is None:
+            raise ModuleNotFoundError("cyclic_dataset() depends on cartopy, which is not available")
 
     lon_idx = ds.dims.index(coord)
     cyclic_data, cyclic_coord = add_cyclic_point(ds.values,
@@ -885,8 +894,10 @@ def import_ds(filelist, myVars=None, myVegtypes=None, timeSlice=None, myVars_mis
     if isinstance(filelist, list) and len(filelist) == 1:
         filelist = filelist[0]
     if isinstance(filelist, list):
-        if importlib.util.find_spec('dask') is None:
-            raise ModuleNotFoundError(f"You have asked xarray to import a list of files as a single Dataset using open_mfdataset(), but this requires dask, which is not available.\nFile list: {filelist}")
+        with warnings.catch_warnings():
+            warnings.filterwarnings(action='ignore', category=DeprecationWarning)
+            if importlib.find_loader('dask') is None:
+                raise ModuleNotFoundError(f"You have asked xarray to import a list of files as a single Dataset using open_mfdataset(), but this requires dask, which is not available.\nFile list: {filelist}")
         this_ds = xr.open_mfdataset(sorted(filelist), \
             data_vars="minimal", 
             preprocess=mfdataset_preproc_closure,
@@ -1202,3 +1213,4 @@ def safer_timeslice(ds, timeSlice, timeVar="time"):
             raise
 
     return ds
+
