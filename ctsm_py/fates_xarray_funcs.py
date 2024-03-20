@@ -120,16 +120,7 @@ def agefuel_to_age_by_fuel(agefuel_var, dataset):
     second argument should be an xarray Dataset that has the FATES FUEL dimension 
     (possibly the dataset encompassing the dataarray being transformed)
     returns an Xarray DataArray with the size and pft dimensions disentangled"""
-    n_age = len(dataset.fates_levage)
-    ds_out = (agefuel_var.rolling(fates_levagefuel=n_age, center=False)
-            .construct("fates_levage")
-            .isel(fates_levagefuel=slice(n_age-1, None, n_age))
-            .rename({'fates_levagefuel':'fates_levfuel'})
-            .assign_coords({'fates_levage':dataset.fates_levage})
-            .assign_coords({'fates_levfuel':dataset.fates_levfuel}))
-    ds_out.attrs['long_name'] = agefuel_var.attrs['long_name']
-    ds_out.attrs['units'] = agefuel_var.attrs['units']
-    return(ds_out)
+    return deduplex(dataset, agefuel_var, "age", "fuel", preserve_order=False)
 
 def scpf_to_scls_by_pft(scpf_var, dataset):
     """function to reshape a fates multiplexed size and pft-indexed variable to one indexed by size class and pft
@@ -137,16 +128,7 @@ def scpf_to_scls_by_pft(scpf_var, dataset):
     second argument should be an xarray Dataset that has the FATES SCLS dimension 
     (possibly the dataset encompassing the dataarray being transformed)
     returns an Xarray DataArray with the size and pft dimensions disentangled"""
-    n_scls = len(dataset.fates_levscls)
-    ds_out = (scpf_var.rolling(fates_levscpf=n_scls, center=False)
-            .construct("fates_levscls")
-            .isel(fates_levscpf=slice(n_scls-1, None, n_scls))
-            .rename({'fates_levscpf':'fates_levpft'})
-            .assign_coords({'fates_levscls':dataset.fates_levscls})
-            .assign_coords({'fates_levpft':dataset.fates_levpft}))
-    ds_out.attrs['long_name'] = scpf_var.attrs['long_name']
-    ds_out.attrs['units'] = scpf_var.attrs['units']
-    return(ds_out)
+    return deduplex(dataset, scpf_var, "scls", "pft", preserve_order=False)
 
 
 def scag_to_scls_by_age(scag_var, dataset):
@@ -154,16 +136,7 @@ def scag_to_scls_by_age(scag_var, dataset):
     first argument should be an xarray DataArray that has the FATES SCAG dimension                                                                                                                                     
     second argument should be an xarray Dataset that has the FATES age dimension                                                                                                                                      
    (possibly the dataset encompassing the dataarray being transformed)                                                                                                                                                     returns an Xarray DataArray with the size and age dimensions disentangled"""
-    n_scls = len(dataset.fates_levscls)
-    ds_out = (scag_var.rolling(fates_levscag=n_scls, center=False)
-            .construct("fates_levscls")
-            .isel(fates_levscag=slice(n_scls-1, None, n_scls))
-            .rename({'fates_levscag':'fates_levage'})
-            .assign_coords({'fates_levscls':dataset.fates_levscls})
-            .assign_coords({'fates_levage':dataset.fates_levage}))
-    ds_out.attrs['long_name'] = scag_var.attrs['long_name']
-    ds_out.attrs['units'] = scag_var.attrs['units']
-    return(ds_out)
+    return deduplex(dataset, scag_var, "scls", "age", preserve_order=False)
 
 
 
