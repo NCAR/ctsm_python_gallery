@@ -39,10 +39,16 @@ def _get_dim_combined(dim1_short, dim2_short):
     dim_combined = "fates_lev" + dim1_short + dim2_short
 
     # Handle further-shortened dim names
-    if dim_combined == "fates_levsclspft":
-        dim_combined = "fates_levscpf"
+    if dim_combined == "fates_levcanleaf":
+        dim_combined = "fates_levcnlf"
+    elif dim_combined == "fates_levcanpft":
+        dim_combined = "fates_levcapf"
+    elif dim_combined == "fates_levcdamscls":
+        dim_combined = "fates_levcdsc"
     elif dim_combined == "fates_levsclsage":
         dim_combined = "fates_levscag"
+    elif dim_combined == "fates_levsclspft":
+        dim_combined = "fates_levscpf"
 
     return dim_combined
 
