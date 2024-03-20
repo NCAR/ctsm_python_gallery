@@ -24,6 +24,29 @@ def _get_check_dim(dim_short, dataset):
     return dim
 
 
+def _get_dim_combined(dim1_short, dim2_short):
+    """Get duplexed dimension name, given two short names
+
+    Args:
+        dim1_short (string): Short name of first duplexed dimension. E.g., when de-duplexing
+                             fates_levscpf, dim1_short=scls.
+        dim2_short (string): Short name of second duplexed dimension. E.g., when de-duplexing
+                             fates_levscpf, dim2_short=pft.
+
+    Returns:
+        string: Duplexed dimension name
+    """
+    dim_combined = "fates_lev" + dim1_short + dim2_short
+
+    # Handle further-shortened dim names
+    if dim_combined == "fates_levsclspft":
+        dim_combined = "fates_levscpf"
+    elif dim_combined == "fates_levsclsage":
+        dim_combined = "fates_levscag"
+
+    return dim_combined
+
+
 def deduplex(dataset, this_var, dim1_short, dim2_short, preserve_order=True):
     """Reshape a duplexed FATES dimension into its constituent dimensions
     
@@ -61,7 +84,7 @@ def deduplex(dataset, this_var, dim1_short, dim2_short, preserve_order=True):
         raise TypeError("this_var must be either string or DataArray, not " + type(this_var))
 
     # Get combined dim name
-    dim_combined = "fates_lev" + dim1_short + dim2_short
+    dim_combined = _get_dim_combined(dim1_short, dim2_short)
     if dim_combined not in da_in.dims:
         raise NameError(f"Dimension {dim_combined} not present in DataArray with dims {da_in.dims}")
 
