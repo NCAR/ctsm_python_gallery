@@ -15,6 +15,8 @@ import cftime
 import numpy as np
 import xarray as xr
 
+import fates_xarray_funcs as fates
+
 # from xr_ds_ex import xr_ds_ex
 
 
