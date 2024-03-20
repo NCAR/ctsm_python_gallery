@@ -74,12 +74,16 @@ def deduplex(dataset, this_var, dim1_short, dim2_short, preserve_order=True):
                                          to True. Might be faster if False. See examples above.
 
     Raises:
+        RuntimeError: dim1_short == dim2_short (not yet handled)
         TypeError: Incorrect type of this_var
         NameError: Dimension not found on Dataset
     
     Returns:
         xarray DataArray: De-duplexed variable
     """
+
+    if dim1_short == dim2_short:
+        raise RuntimeError("deduplex() can't currently handle dim1_short==dim2_short")
 
     # Get DataArray
     if isinstance(this_var, xr.DataArray):
