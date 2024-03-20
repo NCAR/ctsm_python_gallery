@@ -112,3 +112,6 @@ ignore/
 
 # VSCode
 .vscode
+
+# vim
+*.swp
