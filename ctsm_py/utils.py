@@ -362,14 +362,45 @@ def ivt_int2str(ivt_int):
     return ivt_str
 
 
+def ltype_int2str(ds_in, ltype_int):
+    """Get name associated with land unit number
+
+    Args:
+        ds_in (Dataset): xarray Dataset with attributes like ltype_crop: 2
+        ltype_int (int): land unit number to translate
+
+    Raises:
+        ValueError: If you've given an integer for which there is no corresponding ltype_ attribute
+
+    Returns:
+        str: Land unit name
+    """
+
+    # Find ltype attribute whose value matches input ltype_int
+    matching_key = None
+    for key in ds_in.attrs.keys():
+        if "ltype" not in key:
+            continue
+        if ds_in.attrs[key] == ltype_int:
+            matching_key = key
+            break
+    if matching_key is None:
+        raise ValueError(f"No ltype attribute found for value {ltype_int}")
+
+    # Remove leading ltype_ from name
+    ltype_str = matching_key.replace("ltype_", "")
+
+    return ltype_str
+
+
 # Does this vegetation type's name match (for a given comparison method) any member of a filtering list?
 """
 Methods:
     ok_contains:    True if any member of this_filter is found in this_vegtype.
     notok_contains: True of no member of this_filter is found in this_vegtype.
-    ok_exact:       True if this_vegtype matches any member of this_filter 
+    ok_exact:       True if this_vegtype matches any member of this_filter
                     exactly.
-    notok_exact:    True if this_vegtype does not match any member of 
+    notok_exact:    True if this_vegtype does not match any member of
                     this_filter exactly.
 """
 
@@ -423,9 +454,9 @@ def is_this_vegtype(this_vegtype, this_filter, this_method):
 
 # Get boolean list of whether each vegetation type in list is a managed crop
 """
-    this_vegtypelist: The list of vegetation types whose members you want to 
+    this_vegtypelist: The list of vegetation types whose members you want to
                       test.
-    this_filter:      The list of strings against which you want to compare 
+    this_filter:      The list of strings against which you want to compare
                       each member of this_vegtypelist.
     this_method:      How you want to do the comparison. See is_this_vegtype().
 """
