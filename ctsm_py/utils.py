@@ -778,7 +778,7 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
                             f"Expected {thisVar} to have 1 dimension, but it has"
                             f" {len(xr_object[thisVar].dims)}: {xr_object[thisVar].dims}"
                         )
-                    thisVar_dim = xr_object[thisVar].dims[0]
+                    thisVar_dim = xr_object[thisVar].sizes[0]
                     # print(f"Variable {thisVar} has dimension {thisVar_dim}")
                     thisVar_coords = xr_object[key].values[
                         xr_object[thisVar].values.astype(int) - 1
@@ -924,7 +924,7 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
             yearList = np.array([np.float32(x.year - 1) for x in ds.time.values])
             hyears = ds["HDATES"].copy()
             hyears.values = np.tile(
-                np.expand_dims(yearList, (1, 2)), (1, ds.dims["mxharvests"], ds.dims["patch"])
+                np.expand_dims(yearList, (1, 2)), (1, ds.sizes["mxharvests"], ds.sizes["patch"])
             )
             with np.errstate(invalid="ignore"):
                 is_le_zero = ~np.isnan(ds.HDATES.values) & (ds.HDATES.values <= 0)
