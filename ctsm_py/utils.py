@@ -362,14 +362,45 @@ def ivt_int2str(ivt_int):
     return ivt_str
 
 
+def ltype_int2str(ds_in, ltype_int):
+    """Get name associated with land unit number
+
+    Args:
+        ds_in (Dataset): xarray Dataset with attributes like ltype_crop: 2
+        ltype_int (int): land unit number to translate
+
+    Raises:
+        ValueError: If you've given an integer for which there is no corresponding ltype_ attribute
+
+    Returns:
+        str: Land unit name
+    """
+
+    # Find ltype attribute whose value matches input ltype_int
+    matching_key = None
+    for key in ds_in.attrs.keys():
+        if "ltype" not in key:
+            continue
+        if ds_in.attrs[key] == ltype_int:
+            matching_key = key
+            break
+    if matching_key is None:
+        raise ValueError(f"No ltype attribute found for value {ltype_int}")
+
+    # Remove leading ltype_ from name
+    ltype_str = matching_key.replace("ltype_", "")
+
+    return ltype_str
+
+
 # Does this vegetation type's name match (for a given comparison method) any member of a filtering list?
 """
 Methods:
     ok_contains:    True if any member of this_filter is found in this_vegtype.
     notok_contains: True of no member of this_filter is found in this_vegtype.
-    ok_exact:       True if this_vegtype matches any member of this_filter 
+    ok_exact:       True if this_vegtype matches any member of this_filter
                     exactly.
-    notok_exact:    True if this_vegtype does not match any member of 
+    notok_exact:    True if this_vegtype does not match any member of
                     this_filter exactly.
 """
 
@@ -423,9 +454,9 @@ def is_this_vegtype(this_vegtype, this_filter, this_method):
 
 # Get boolean list of whether each vegetation type in list is a managed crop
 """
-    this_vegtypelist: The list of vegetation types whose members you want to 
+    this_vegtypelist: The list of vegetation types whose members you want to
                       test.
-    this_filter:      The list of strings against which you want to compare 
+    this_filter:      The list of strings against which you want to compare
                       each member of this_vegtypelist.
     this_method:      How you want to do the comparison. See is_this_vegtype().
 """
@@ -747,7 +778,7 @@ def xr_flexsel(xr_object, patches1d_itype_veg=None, warn_about_seltype_interp=Tr
                             f"Expected {thisVar} to have 1 dimension, but it has"
                             f" {len(xr_object[thisVar].dims)}: {xr_object[thisVar].dims}"
                         )
-                    thisVar_dim = xr_object[thisVar].dims[0]
+                    thisVar_dim = xr_object[thisVar].sizes[0]
                     # print(f"Variable {thisVar} has dimension {thisVar_dim}")
                     thisVar_coords = xr_object[key].values[
                         xr_object[thisVar].values.astype(int) - 1
@@ -809,7 +840,7 @@ def get_vegtype_str_da(vegtype_str):
 
 # Function to drop unwanted variables in preprocessing of open_mfdataset(), making sure to NOT drop any unspecified variables that will be useful in gridding. Also adds vegetation type info in the form of a DataArray of strings.
 # Also renames "pft" dimension (and all like-named variables, e.g., pft1d_itype_veg_str) to be named like "patch". This can later be reversed, for compatibility with other code, using patch2pft().
-def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
+def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice, add_time_axis_vars):
     # Rename "pft" dimension and variables to "patch", if needed
     if "pft" in ds.dims:
         pattern = re.compile("pft.*1d")
@@ -833,11 +864,7 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
             dimList = list(set(dimList + list(ds.variables[thisVar].dims)))
 
         # Get any _1d variables that are associated with those dimensions. These will be useful in gridding. Also, if any dimension is "pft", set up to rename it and all like-named variables to "patch"
-        onedVars = []
-        for thisDim in dimList:
-            pattern = re.compile(f"{thisDim}.*1d")
-            matches = [x for x in list(ds.keys()) if pattern.search(x) != None]
-            onedVars = list(set(onedVars + matches))
+        onedVars = get_useful_1d_vars(ds, dimList)
 
         # Add dimensions and _1d variables to vars_to_import
         vars_to_import = list(set(vars_to_import + list(ds.dims) + onedVars))
@@ -856,6 +883,18 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
 
         # Drop them
         ds = ds.drop_vars(vars_to_drop)
+
+    # Add time axis to useful 1-d variables, if needed
+    if add_time_axis_vars:
+        if isinstance(add_time_axis_vars, str):
+            add_time_axis_vars = [add_time_axis_vars]
+        elif not isinstance(add_time_axis_vars, list):
+            add_time_axis_vars = get_useful_1d_vars(ds, ds.dims)
+        for var in add_time_axis_vars:
+            da = ds[var]
+            if "time" in da.dims:
+                continue
+            ds[var] = da.expand_dims({"time": ds["time"]})
 
     # Add vegetation type info
     if "patches1d_itype_veg" in list(ds):
@@ -893,7 +932,7 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
             yearList = np.array([np.float32(x.year - 1) for x in ds.time.values])
             hyears = ds["HDATES"].copy()
             hyears.values = np.tile(
-                np.expand_dims(yearList, (1, 2)), (1, ds.dims["mxharvests"], ds.dims["patch"])
+                np.expand_dims(yearList, (1, 2)), (1, ds.sizes["mxharvests"], ds.sizes["patch"])
             )
             with np.errstate(invalid="ignore"):
                 is_le_zero = ~np.isnan(ds.HDATES.values) & (ds.HDATES.values <= 0)
@@ -904,6 +943,16 @@ def mfdataset_preproc(ds, vars_to_import, vegtypes_to_import, timeSlice):
             ds["HYEARS"] = hyears
 
     return ds
+
+
+# Get 1-d variables like land1d_active that are useful for regridding, etc.
+def get_useful_1d_vars(ds, dimList):
+    onedVars = []
+    for thisDim in dimList:
+        pattern = re.compile(f"{thisDim}.*1d")
+        matches = [x for x in list(ds.keys()) if pattern.search(x) != None]
+        onedVars = list(set(onedVars + matches))
+    return onedVars
 
 
 # Rename "patch" dimension and any associated variables back to "pft". Uses a dictionary with the names of the dimensions and variables we want to rename. This allows us to do it all at once, which may be more efficient than one-by-one.
@@ -940,6 +989,7 @@ def import_ds(
     only_active_patches=False,
     rename_lsmlatlon=False,
     chunks=None,
+    add_time_axis_vars=None,
 ):
     # Convert myVegtypes here, if needed, to avoid repeating the process each time you read a file in xr.open_mfdataset().
     if myVegtypes != None:
@@ -981,7 +1031,7 @@ def import_ds(
         filelist = new_filelist
 
     # The xarray open_mfdataset() "preprocess" argument requires a function that takes exactly one variable (an xarray.Dataset object). Wrapping mfdataset_preproc() in this lambda function allows this. Could also just allow mfdataset_preproc() to access myVars and myVegtypes directly, but that's bad practice as it could lead to scoping issues.
-    mfdataset_preproc_closure = lambda ds: mfdataset_preproc(ds, myVars, myVegtypes, timeSlice)
+    mfdataset_preproc_closure = lambda ds: mfdataset_preproc(ds, myVars, myVegtypes, timeSlice, add_time_axis_vars)
 
     # Import
     if isinstance(filelist, list) and len(filelist) == 1:
@@ -1007,7 +1057,13 @@ def import_ds(
         )
     elif isinstance(filelist, str):
         this_ds = xr.open_dataset(filelist, chunks=chunks)
-        this_ds = mfdataset_preproc(this_ds, myVars, myVegtypes, timeSlice)
+        this_ds = mfdataset_preproc(
+            this_ds,
+            myVars,
+            myVegtypes,
+            timeSlice,
+            add_time_axis_vars=None,  # If only opening one file, no use to adding time axis
+        )
         this_ds = this_ds.compute()
 
     # Include only active patches (or whatever)
